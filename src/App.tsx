@@ -89,7 +89,7 @@ export function App() {
       <button data-folder-control onClick={() => void choose()}><Icon name="folder" />{state.status === 'no-folder' ? m.choose : m.change}</button>
       {state.canRefresh && <button disabled={state.scanning} onClick={() => { setPickerError(null); void controller.refresh(); }}><Icon name="refresh" />{m.refresh}</button>}
       <input ref={input} type="file" multiple {...{ webkitdirectory: '' }} hidden aria-label={m.choose}
-        onChange={(event) => { if (event.target.files?.length) { setPickerError(null); void controller.setSource(snapshotSource(Array.from(event.target.files))); } event.target.value = ''; }} />
+        onChange={(event) => { if (event.target.files) { setPickerError(null); void controller.setSource(snapshotSource(Array.from(event.target.files))); } event.target.value = ''; }} />
       {state.notice === 'reselect' && <p className={styles.hint}>{m.snapshot}</p>}
       {state.scanning && active && <span role="status" className={styles.hint}>{m.scanning}</span>}
     </div>

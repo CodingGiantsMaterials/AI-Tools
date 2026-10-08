@@ -2,6 +2,9 @@
 
 `App` owns one `CollectionController`, `NotesController` and shared
 `OriginalUrls` cache. Folder selection stays in the initiating gesture.
+An input `change` with an empty `FileList` selects an empty snapshot; a `cancel`
+event preserves the collection. If the browser sends no selection event for an
+empty folder, the application cannot distinguish it from cancellation.
 The gallery consumes the [collection and notes contracts](local-data.md) and
 does not reorder entries or use content identity as gallery identity.
 
