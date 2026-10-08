@@ -90,7 +90,11 @@ export function ThumbnailStrip({ entries, activeId, activate, urls, m }: Gallery
   const structure = entries.map((entry) => entry.resourceKey).join('|');
   useEffect(() => {
     const root = strip.current!;
-    setVisible(new Set());
+    const currentKeys = new Set(Array.from(root.children, (child) => (child as HTMLElement).dataset.resourceKey!));
+    setVisible((previous) => {
+      const next = new Set([...previous].filter((key) => currentKeys.has(key)));
+      return next.size === previous.size ? previous : next;
+    });
     const observer = new IntersectionObserver((changes) => {
       setVisible((previous) => {
         const next = new Set(previous);

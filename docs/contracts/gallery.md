@@ -19,6 +19,8 @@ to the mounted original. All image views use this component.
 
 `ThumbnailStrip` keeps a reserved button for every entry but mounts original
 images only within the horizontal viewport and optional one-thumbnail overscan.
+Its bounded grid contains portrait, square and landscape frames. Changes to
+other entries retain the native elements and URLs of unchanged visible images.
 A 96-megapixel soft estimate controls optional overscan using metadata dimensions;
 unknown dimensions assume 24 megapixels. Visible images and carousel neighbors
 remain required, so this is not a hard browser-memory cap. Native animation

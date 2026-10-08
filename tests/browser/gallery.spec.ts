@@ -318,6 +318,75 @@ test('production UI keeps untrusted metadata and notes local with CSP bypassed',
   } finally { await context.close(); }
 });
 
+test('portrait and square thumbnails contain every edge inside their reserved tiles', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1536, height: 1024 });
+  await page.goto(app);
+  const images = await page.evaluate(() => [[1000, 2000], [1000, 1000], [1500, 1000]].map(([width, height], index) => {
+    const canvas = document.createElement('canvas'); canvas.width = width!; canvas.height = height!;
+    const context = canvas.getContext('2d')!;
+    context.fillStyle = '#1854a8'; context.fillRect(0, 0, width!, height!);
+    context.fillStyle = '#ffe000'; context.fillRect(0, height! * .9, width!, height! * .1);
+    return { name: `${index}-frame.png`, base64: canvas.toDataURL('image/png').split(',')[1]! };
+  }));
+  await openFolder(page, images.map(({ name, base64 }) => ({ name, buffer: Buffer.from(base64, 'base64') })), true);
+  await expect(thumbs(page).locator('img')).toHaveCount(3);
+  for (const image of await thumbs(page).locator('img').all()) await image.evaluate((img: HTMLImageElement) => img.decode());
+  for (const [width, height, label] of [[1536, 1024, 'desktop'], [390, 844, 'mobile'], [320, 600, 'narrow']] as const) {
+    await page.setViewportSize({ width, height });
+    for (const theme of ['light', 'dark'] as const) {
+      await page.getByRole('button', { name: theme === 'light' ? 'Jasny' : 'Ciemny', exact: true }).click();
+      const bounds = await thumbs(page).locator('img').evaluateAll((items) => items.map((img) => {
+        const image = img.getBoundingClientRect(), tile = img.parentElement!.getBoundingClientRect();
+        return { name: img.getAttribute('alt'), image: { x: image.x, y: image.y, width: image.width, height: image.height }, tile: { x: tile.x, y: tile.y, width: tile.width, height: tile.height },
+          contained: image.left >= tile.left && image.right <= tile.right && image.top >= tile.top && image.bottom <= tile.bottom,
+          fit: getComputedStyle(img).objectFit };
+      }));
+      await testInfo.attach(`thumbnail-${label}-${theme}-bounds`, { body: JSON.stringify(bounds, null, 2), contentType: 'application/json' });
+      await testInfo.attach(`thumbnail-${label}-${theme}`, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+      expect(bounds.map((item) => item.name)).toEqual(expect.arrayContaining(['0-frame.png', '1-frame.png']));
+      expect(bounds.every((item) => item.contained && item.fit === 'contain')).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    }
+  }
+});
+
+test('unchanged thumbnails survive additions, removals and another file replacement', async ({ page }, testInfo) => {
+  await page.goto(app);
+  const png = await fixtureFile('images/animated.png'), webp = await fixtureFile('images/animated.webp');
+  await openFolder(page, Array.from({ length: 5 }, (_, index) => ({ name: `${index}.image`, buffer: index % 2 ? webp.buffer : png.buffer })));
+  await expect(thumbs(page).locator('img')).toHaveCount(5);
+  await page.evaluate(() => {
+    Reflect.set(window, 'retainedThumbnails', [...document.querySelectorAll<HTMLImageElement>('nav button[data-resource-key] img')].map((image) => ({ image, name: image.alt, src: image.src })));
+    const files = Reflect.get(window, 'galleryFiles') as File[];
+    files.push(new File([files[0]!], 'added.image', { lastModified: 1 }));
+  });
+  const retained = () => page.evaluate(() => (Reflect.get(window, 'retainedThumbnails') as { image: HTMLImageElement; name: string; src: string }[]).map(({ image, name, src }) => ({
+    name, connected: image.isConnected, same: [...document.querySelectorAll<HTMLImageElement>('nav button[data-resource-key] img')].find((candidate) => candidate.alt === name) === image, source: image.src === src,
+  })));
+  const refresh = async () => {
+    await page.getByRole('button', { name: 'Odśwież', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Odśwież', exact: true })).toBeEnabled();
+  };
+  await refresh(); await expect(thumbs(page).locator('img')).toHaveCount(6);
+  const afterAddition = await retained();
+  await testInfo.attach('thumbnails-after-addition', { body: JSON.stringify(afterAddition, null, 2), contentType: 'application/json' });
+  expect(afterAddition.every((item) => item.connected && item.same && item.source)).toBe(true);
+  await page.evaluate(() => (Reflect.get(window, 'galleryFiles') as File[]).pop());
+  await refresh(); await expect(thumbs(page).locator('img')).toHaveCount(5);
+  const afterRemoval = await retained();
+  await testInfo.attach('thumbnails-after-removal', { body: JSON.stringify(afterRemoval, null, 2), contentType: 'application/json' });
+  expect(afterRemoval.every((item) => item.connected && item.same && item.source)).toBe(true);
+  await page.evaluate(() => {
+    const files = Reflect.get(window, 'galleryFiles') as File[];
+    files[1] = new File([files[0]!], files[1]!.name, { lastModified: 1 });
+  });
+  await refresh(); await expect(thumbs(page).locator('img')).toHaveCount(5);
+  const final = await retained();
+  await testInfo.attach('thumbnails-after-replacement', { body: JSON.stringify(final, null, 2), contentType: 'application/json' });
+  expect(final.filter((item) => item.name !== '1.image').every((item) => item.connected && item.same && item.source)).toBe(true);
+  expect(final.find((item) => item.name === '1.image')).toMatchObject({ connected: false, same: false });
+});
+
 test('100 realistic entries bound original resources, retain scrolling and save visual evidence', async ({ page }, testInfo) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1536, height: 1024 });

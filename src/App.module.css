@@ -71,7 +71,7 @@
 .notes .hint { margin-top: 4px; }
 .thumbnails { display: flex; align-items: center; gap: 12px; padding: 24px 0 0; min-width: 0; }
 .strip { position: relative; display: flex; flex: 1; min-width: 0; gap: 10px; overflow-x: auto; padding: 7px 4px 10px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; overscroll-behavior-x: contain; }
-.thumbnail { flex: 0 0 106px; height: 77px; padding: 2px; border: 2px solid transparent; position: relative; display: grid; place-items: center; background: var(--soft); border-radius: 6px; }
+.thumbnail { flex: 0 0 106px; height: 77px; padding: 2px; border: 2px solid transparent; position: relative; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; background: var(--soft); border-radius: 6px; }
 .thumbnail[aria-current="true"] { border-color: var(--accent); outline: 1px solid var(--accent); outline-offset: 1px; }
 .thumbnail img { border-radius: 3px; }
 .thumbnail .imageError { font-size: 9px; padding: 3px; }
