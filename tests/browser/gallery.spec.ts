@@ -265,7 +265,7 @@ test('native orientation is applied once and transparent originals retain full f
     return { jpeg, transparent: canvas.toDataURL('image/png').split(',')[1]! };
   });
   const jpeg = Buffer.from(encoded.jpeg, 'base64');
-  for (const [orientation, corner] of [[1, 'red'], [3, 'yellow'], [6, 'blue'], [8, 'green']] as const) {
+  for (const [orientation, corner] of [[1, 'red'], [2, 'green'], [3, 'yellow'], [4, 'blue'], [5, 'red'], [6, 'blue'], [7, 'yellow'], [8, 'green']] as const) {
     const exif = Buffer.concat([Buffer.from('Exif\0\0'), exifChunk(orientation).subarray(8, -4)]);
     const segment = Buffer.alloc(4); segment[0] = 0xff; segment[1] = 0xe1; segment.writeUInt16BE(exif.length + 2, 2);
     await openFolder(page, [{ name: `orientation-${orientation}.jpg`, buffer: Buffer.concat([jpeg.subarray(0, 2), segment, exif, jpeg.subarray(2)]) }], true);
@@ -309,6 +309,23 @@ test('production UI keeps untrusted metadata and notes local with CSP bypassed',
     await note.pressSequentially('Private local note https://example.invalid/note');
     await expect(page.locator('#note-status')).toHaveText('Zapisano');
     expect(await page.evaluate(() => Reflect.get(window, 'galleryMutations')())).toBe(0);
+    await openFolder(page, [await fixtureFile('c2pa/remote.jpg'), await fixtureFile('c2pa/remote-icon.jpg'),
+      { name: 'untrusted.png', buffer: metadataPng(textChunk('Software', '<img src="https://example.invalid/private-image">', true)) }], true);
+    await comparisonMode(page);
+    for (const [filename, status] of [['remote.jpg', 'Manifest zewnętrzny — nie pobrano'], ['remote-icon.jpg', 'Błąd odczytu C2PA'], ['untrusted.png', 'Brak C2PA']]) {
+      await page.getByRole('navigation').getByRole('button', { name: `Wybierz zdjęcie: ${filename}`, exact: true }).click();
+      await expect(page.locator('aside [data-status]')).toHaveText(status!);
+    }
+    await expect(note).toHaveValue('Private local note https://example.invalid/note');
+    await page.evaluate(() => {
+      let changes = 0;
+      const observer = new MutationObserver((mutations) => { changes += mutations.length; });
+      observer.observe(document.querySelector('section[aria-label="Porównanie"]')!, { childList: true, subtree: true, attributes: true });
+      Reflect.set(window, 'comparisonMutations', () => { observer.disconnect(); return changes; });
+    });
+    await note.pressSequentially(' more private text');
+    await expect(page.locator('#note-status')).toHaveText('Zapisano');
+    expect(await page.evaluate(() => Reflect.get(window, 'comparisonMutations')())).toBe(0);
     expect(requests.filter((request) => {
       const url = new URL(request.url);
       if (url.protocol === 'blob:' && url.origin === new URL(app).origin) return false;
@@ -438,4 +455,297 @@ test('100 realistic entries bound original resources, retain scrolling and save 
   await page.keyboard.press('Escape');
   await openFolder(page, []);
   await expect.poll(() => page.evaluate(() => Reflect.get(window, 'urlStats')().live)).toBe(0);
+});
+
+const field = (page: Page, slot: 'A' | 'B') => page.locator(`[data-slot="${slot}"]`);
+const chooseField = (page: Page, slot: 'A' | 'B') => page.getByRole('button', { name: `Wybierz pole ${slot}`, exact: true }).click();
+const comparisonMode = (page: Page) => page.getByRole('button', { name: 'Porównanie', exact: true }).click();
+const refreshFolder = async (page: Page) => {
+  await page.getByRole('button', { name: 'Odśwież', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Odśwież', exact: true })).toBeEnabled();
+};
+
+test('comparison assigns distinct fields, directs pin navigation and inspects the selected notes', async ({ page }) => {
+  await page.goto(app);
+  await openFolder(page, ['A', 'B', 'C', 'D'].map((value) => ({ name: `${value}.png`, buffer: metadataPng(textChunk('Software', value)) })));
+  const note = page.getByRole('textbox', { name: 'Notatki' });
+  await expect(note).toBeEnabled(); await note.fill('Note A');
+  await comparisonMode(page);
+  await expect(field(page, 'A').locator('img')).toHaveAttribute('alt', 'A.png');
+  await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', 'B.png');
+  await page.getByRole('button', { name: 'Przypnij pole A', exact: true }).click();
+  await expect(field(page, 'B')).toHaveAttribute('data-active', 'true');
+  await expect(page.locator('aside h2')).toHaveText('B.png');
+  await expect(note).toHaveValue(''); await expect(note).toBeEnabled(); await note.fill('Note B');
+  await note.press('ArrowRight');
+  await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', 'B.png');
+  await page.getByRole('button', { name: 'Następne zdjęcie', exact: true }).click();
+  await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', 'C.png');
+  await expect(note).toHaveValue('');
+  await chooseField(page, 'A'); await expect(note).toHaveValue('Note A');
+  await page.keyboard.press('ArrowRight');
+  await expect(field(page, 'A').locator('img')).toHaveAttribute('alt', 'A.png');
+  await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', 'D.png');
+  await expect(field(page, 'B')).toHaveAttribute('data-active', 'true');
+  await thumbs(page).nth(1).click(); await expect(note).toHaveValue('Note B');
+  await page.getByRole('button', { name: 'Przypnij pole B', exact: true }).click();
+  await expect(field(page, 'A')).toHaveAttribute('data-active', 'true');
+  await expect(field(page, 'A')).toHaveAttribute('data-pinned', 'false');
+  await expect(field(page, 'B')).toHaveAttribute('data-pinned', 'true');
+  await thumbs(page).nth(2).click();
+  await expect(field(page, 'A').locator('img')).toHaveAttribute('alt', 'C.png');
+  await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', 'B.png');
+  await thumbs(page).nth(1).click();
+  await expect(field(page, 'B')).toHaveAttribute('data-active', 'true');
+  await expect(note).toHaveValue('Note B');
+  await page.getByRole('button', { name: 'Karuzela', exact: true }).click();
+  await expect(center(page)).toHaveAttribute('data-entry-id', 'B.png');
+  await center(page).click(); await expect(page.getByRole('dialog').locator('img')).toHaveAttribute('alt', 'B.png');
+  await page.keyboard.press('Escape'); await comparisonMode(page);
+  await expect(note).toHaveValue('Note B');
+});
+
+test('comparison handles empty and short collections with unique assignments and translated states', async ({ page }) => {
+  await page.goto(app); await comparisonMode(page);
+  const original = await fixtureFile('images/static.png');
+  for (const count of [0, 1, 2, 3, 4, 5, 9]) {
+    await openFolder(page, Array.from({ length: count }, (_, index) => ({ name: `photo-${index}.png`, buffer: original.buffer })));
+    await expect(thumbs(page)).toHaveCount(count);
+    const displayed = page.locator('[data-slot] img');
+    await expect(displayed).toHaveCount(Math.min(count, 2));
+    const names = await displayed.evaluateAll((images) => images.map((image) => image.getAttribute('alt')));
+    expect(new Set(names).size).toBe(names.length);
+    if (count <= 2) await expect(page.getByRole('button', { name: 'Następne zdjęcie', exact: true })).toBeDisabled();
+    if (count === 1) {
+      await page.getByRole('button', { name: 'Przypnij pole A', exact: true }).click();
+      await expect(field(page, 'B')).toHaveAttribute('data-active', 'true');
+      await expect(page.getByRole('textbox', { name: 'Notatki' })).toHaveCount(0);
+      for (const [language, message] of [['en', 'Another photo is needed for this field.'], ['de', 'Für dieses Feld wird ein weiteres Foto benötigt.'], ['es', 'Se necesita otra foto para este campo.'], ['pl', 'To pole wymaga kolejnego zdjęcia.']]) {
+        await page.getByRole('combobox').selectOption(language!);
+        await expect(field(page, 'B').getByText(message!, { exact: true })).toBeVisible();
+      }
+    }
+  }
+});
+
+test('missing pinned originals remain unavailable through empty scans and recover only their own entry', async ({ page }) => {
+  await page.goto(app);
+  await openFolder(page, [await fixtureFile('images/animated.png'), await fixtureFile('images/static.png')]);
+  await comparisonMode(page); await page.getByRole('button', { name: 'Przypnij pole A', exact: true }).click();
+  await page.evaluate(() => {
+    const files = Reflect.get(window, 'galleryFiles') as File[];
+    Reflect.set(window, 'removedOriginal', files[0]); Reflect.set(window, 'galleryFiles', files.slice(1));
+  });
+  await refreshFolder(page);
+  await expect(field(page, 'A').getByText('Przypięte zdjęcie jest niedostępne.', { exact: true })).toBeVisible();
+  await expect(field(page, 'A').locator('img')).toHaveCount(0);
+  await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', 'static.png');
+  await chooseField(page, 'A'); await expect(page.locator('aside')).toContainText('Przypięte zdjęcie jest niedostępne.');
+  await expect(page.getByRole('textbox')).toHaveCount(0);
+  await page.evaluate(() => Reflect.set(window, 'galleryFiles', [])); await refreshFolder(page);
+  await expect(field(page, 'A')).toHaveAttribute('data-pinned', 'true');
+  await expect(page.locator('[data-slot] img')).toHaveCount(0);
+  await page.evaluate(() => Reflect.set(window, 'galleryFiles', [Reflect.get(window, 'removedOriginal')])); await refreshFolder(page);
+  await expect(field(page, 'A').locator('img')).toHaveAttribute('alt', 'animated.png');
+  await expect(field(page, 'B').locator('img')).toHaveCount(0);
+  await page.evaluate(() => Reflect.set(window, 'galleryFiles', [])); await refreshFolder(page);
+  await page.getByRole('button', { name: 'Odepnij pole A', exact: true }).click();
+  await expect(field(page, 'A')).toHaveAttribute('data-pinned', 'false');
+  await expect(field(page, 'A')).not.toContainText('animated.png');
+});
+
+test('comparison refresh retains originals, replaces same-attribute revisions and isolates folder notes', async ({ page }) => {
+  await page.goto(app);
+  const files = ['A', 'B', 'C'].map((value) => ({ name: `${value}.png`, buffer: metadataPng(textChunk('Software', value)) }));
+  expect(files[0]!.buffer.length).toBe(files[1]!.buffer.length);
+  await openFolder(page, files); await comparisonMode(page);
+  const note = page.getByRole('textbox', { name: 'Notatki' });
+  await expect(note).toBeEnabled(); await note.fill('Original A');
+  await page.getByRole('button', { name: 'Przypnij pole A', exact: true }).click();
+  await field(page, 'A').locator('img').evaluate((image) => Reflect.set(window, 'pinnedImage', image));
+  const originalUrl = await field(page, 'A').locator('img').getAttribute('src');
+  await refreshFolder(page);
+  expect(await field(page, 'A').locator('img').evaluate((image) => image === Reflect.get(window, 'pinnedImage'))).toBe(true);
+  await expect(field(page, 'A').locator('img')).toHaveAttribute('src', originalUrl!);
+  await page.evaluate(() => {
+    const files = Reflect.get(window, 'galleryFiles') as File[];
+    files[0] = new File([files[2]!], 'A.png', { lastModified: 1 });
+  });
+  await refreshFolder(page);
+  await expect(field(page, 'A').locator('img')).not.toHaveAttribute('src', originalUrl!);
+  await chooseField(page, 'A'); await expect(note).toBeEnabled(); await expect(note).toHaveValue('');
+  await page.getByText('Inne metadane', { exact: true }).click(); await expect(page.locator('aside').getByText('C', { exact: true })).toBeVisible();
+  await note.fill('Changed A'); await page.getByRole('button', { name: 'Karuzela', exact: true }).click();
+  await center(page).click(); await expect(page.getByRole('dialog').locator('img')).toHaveAttribute('src', (await center(page).locator('img').getAttribute('src'))!);
+  await page.keyboard.press('Escape'); await comparisonMode(page); await expect(note).toHaveValue('Changed A');
+  await openFolder(page, files, true);
+  await expect(field(page, 'A')).toHaveAttribute('data-pinned', 'false');
+  await expect(note).toHaveValue('Original A');
+});
+
+for (const extension of ['png', 'webp']) {
+  test(`comparison native animated ${extension} remains full-frame and mounted during selection`, async ({ page }, testInfo) => {
+    await page.goto(app);
+    await page.evaluate(() => {
+      const originals = new Map<string, Blob>();
+      const create = URL.createObjectURL.bind(URL), revoke = URL.revokeObjectURL.bind(URL);
+      URL.createObjectURL = (blob) => { const url = create(blob); originals.set(url, blob as Blob); return url; };
+      URL.revokeObjectURL = (url) => { originals.delete(url); revoke(url); };
+      Reflect.set(window, 'comparisonOriginals', originals);
+    });
+    const file = await fixtureFile(`images/animated.${extension}`);
+    await openFolder(page, [{ ...file, name: `a.${extension}` }, { ...file, name: `b.${extension}` }]);
+    await comparisonMode(page);
+    for (const slot of ['A', 'B'] as const) {
+      const image = field(page, slot).locator('img');
+      await image.evaluate((img: HTMLImageElement) => img.decode());
+      const source = await image.getAttribute('src');
+      const frames = new Set<string>();
+      for (let i = 0; i < 6; i++) { frames.add(createHash('sha256').update(await image.screenshot()).digest('hex')); await page.waitForTimeout(130); }
+      expect(frames.size).toBeGreaterThan(1);
+      const geometry = await image.evaluate((img: HTMLImageElement) => ({ fit: getComputedStyle(img).objectFit, opacity: getComputedStyle(img).opacity, transform: getComputedStyle(img).transform }));
+      expect(geometry).toEqual({ fit: 'contain', opacity: '1', transform: 'none' });
+      const bytes = await image.evaluate(async (img: HTMLImageElement) => Array.from(new Uint8Array(await Reflect.get(window, 'comparisonOriginals').get(img.src).arrayBuffer())));
+      expect(Buffer.from(bytes)).toEqual(file.buffer);
+      await image.evaluate((img) => Reflect.set(window, 'retainedComparisonImage', img));
+      await chooseField(page, slot); await refreshFolder(page);
+      expect(await image.evaluate((img) => img === Reflect.get(window, 'retainedComparisonImage'))).toBe(true);
+      await expect(image).toHaveAttribute('src', source!);
+    }
+    await testInfo.attach(`comparison-${extension}`, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+  });
+}
+
+test('ICC originals apply native color conversion consistently in carousel, thumbnails, modal and comparison', async ({ page: defaultPage, browserName, playwright }, testInfo) => {
+  // Playwright disables Firefox ICC for screenshots; restore tagged-image conversion here.
+  const colorBrowser = browserName === 'firefox' ? await playwright.firefox.launch({ firefoxUserPrefs: { 'gfx.color_management.mode': 2 } }) : null;
+  const page = colorBrowser ? await colorBrowser.newPage({ ignoreHTTPSErrors: true }) : defaultPage;
+  try {
+    await page.goto(app);
+    await openFolder(page, [await fixtureFile('images/linear-gray.png'), await fixtureFile('images/srgb-gray.png')], true);
+    const samples: unknown[] = [];
+    const inspect = async (image: Locator, view: string, expected: number) => {
+      await image.evaluate((img: HTMLImageElement) => img.decode());
+      const pixel = await image.evaluate((img: HTMLImageElement) => {
+        const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 64;
+        const context = canvas.getContext('2d', { colorSpace: 'srgb' })!; context.drawImage(img, 0, 0);
+        return Array.from(context.getImageData(5, 5, 1, 1).data);
+      });
+      samples.push({ view, expected, pixel });
+      for (const channel of pixel.slice(0, 3)) expect(Math.abs(channel - expected)).toBeLessThanOrEqual(3);
+      expect(pixel[3]).toBe(255);
+    };
+    await inspect(center(page).locator('img'), 'carousel-linear', 188);
+    await inspect(thumbs(page).first().locator('img'), 'thumbnail-linear', 188);
+    await center(page).click(); await inspect(page.getByRole('dialog').locator('img'), 'modal-linear', 188); await page.keyboard.press('Escape');
+    await comparisonMode(page);
+    await inspect(field(page, 'A').locator('img'), 'comparison-linear', 188);
+    await inspect(field(page, 'B').locator('img'), 'comparison-srgb', 128);
+    await page.getByText('Inne metadane', { exact: true }).click();
+    await expect(page.locator('aside').getByText('Linear RGB', { exact: true })).toBeVisible();
+    await testInfo.attach('icc-native-conversion', { body: JSON.stringify(samples, null, 2), contentType: 'application/json' });
+  } finally { await colorBrowser?.close(); }
+});
+
+test('comparison survives repeated full traversal of 100 realistic originals with bounded resources', async ({ page }, testInfo) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 1536, height: 1024 });
+  await page.addInitScript(() => {
+    const live = new Map<string, number>(); let created = 0, revoked = 0, peak = 0;
+    const create = URL.createObjectURL.bind(URL), revoke = URL.revokeObjectURL.bind(URL);
+    URL.createObjectURL = (blob) => { const url = create(blob); live.set(url, blob instanceof Blob ? blob.size : 0); created++; peak = Math.max(peak, live.size); return url; };
+    URL.revokeObjectURL = (url) => { if (live.delete(url)) revoked++; revoke(url); };
+    Reflect.set(window, 'comparisonResources', () => ({ live: live.size, bytes: [...live.values()].reduce((a, b) => a + b, 0), created, revoked, peak }));
+  });
+  await page.goto(app);
+  const originals = [landscape(0, 6000, 4000), landscape(1, 2400, 3600), ...Array.from({ length: 7 }, (_, i) => landscape(i + 2, 2400, 1600))];
+  const files = Array.from({ length: 100 }, (_, i) => ({ name: `image-${String(i).padStart(3, '0')}.png`, buffer: originals[i % originals.length]! }));
+  files[49] = { name: 'image-049.png', buffer: (await fixtureFile('images/animated.png')).buffer };
+  files[50] = { name: 'image-050.webp', buffer: (await fixtureFile('images/animated.webp')).buffer };
+  await openFolder(page, files, true); await expect(thumbs(page)).toHaveCount(100, { timeout: 30_000 });
+  const orderedNames = await thumbs(page).evaluateAll((buttons) => buttons.map((button) => button.getAttribute('title')!));
+  expect(new Set(orderedNames)).toEqual(new Set(files.map((file) => file.name)));
+  await comparisonMode(page); await page.getByRole('button', { name: 'Przypnij pole A', exact: true }).click();
+  const samples: unknown[] = [], durations: number[] = [];
+  for (let round = 0; round < 3; round++) {
+    for (let index = 1; index < 100; index++) {
+      const before = Date.now();
+      await thumbs(page).nth(index).evaluate((button: HTMLButtonElement) => button.click());
+      await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', orderedNames[index]!);
+      durations.push(Date.now() - before);
+      await expect.poll(() => page.locator('img[src^="blob:"]').count()).toBeLessThan(24);
+    }
+    await thumbs(page).nth(50).evaluate((button: HTMLButtonElement) => button.click());
+    await expect(page.locator('aside h2')).toHaveText(orderedNames[50]!);
+    await expect.poll(() => page.workers().length, { timeout: 30_000 }).toBe(0);
+    let sample: unknown;
+    await expect.poll(async () => {
+      const observed = await page.evaluate(() => {
+        const images = [...document.querySelectorAll<HTMLImageElement>('img[src^="blob:"]')];
+        const unique = new Map(images.map((image) => [image.src, image.naturalWidth * image.naturalHeight]));
+        const stats = Reflect.get(window, 'comparisonResources')();
+        return { ...stats, mounted: images.length,
+          estimatedUniqueDecodedRgbaBytes: [...unique.values()].reduce((sum, pixels) => sum + pixels * 4, 0),
+          jsHeapBytes: Reflect.get(performance, 'memory')?.usedJSHeapSize ?? null, scrollY,
+          settled: !!document.querySelector('nav [aria-current="true"] img') && unique.size === stats.live && images.every((image) => image.complete && image.naturalWidth > 0) };
+      });
+      sample = observed;
+      return observed.settled;
+    }).toBe(true);
+    samples.push(sample);
+  }
+  const sorted = [...durations].sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * .95)]!;
+  expect(p95).toBeLessThan(1000);
+  const stats = await page.evaluate(() => Reflect.get(window, 'comparisonResources')());
+  expect(stats.live).toBeLessThan(24); expect(stats.created - stats.revoked).toBe(stats.live);
+  await testInfo.attach('comparison-scale', { body: JSON.stringify({ dimensions: [[6000, 4000], [2400, 3600], [2400, 1600]], entries: files.length, traversals: 3, selections: durations.length,
+    selectionLatencyMs: { p95, max: sorted.at(-1), median: sorted[Math.floor(sorted.length / 2)] }, samples, stats,
+    limits: 'RGBA is an estimate from unique mounted originals, excluding animation buffers, GPU and browser caches. JS heap is Chromium-only and not total browser memory.' }, null, 2), contentType: 'application/json' });
+  await thumbs(page).nth(2).evaluate((button: HTMLButtonElement) => button.click());
+  for (const [width, height, viewport] of [[1536, 1024, 'desktop'], [390, 844, 'mobile'], [320, 700, 'narrow']] as const) {
+    await page.setViewportSize({ width, height });
+    for (const [theme, label] of [['Jasny', 'light'], ['Ciemny', 'dark']]) {
+      await page.getByRole('button', { name: theme!, exact: true }).click();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+      await testInfo.attach(`comparison-${viewport}-${label}`, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+    }
+  }
+  await openFolder(page, []);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, 'comparisonResources')().live)).toBe(0);
+  await expect.poll(() => page.workers().length).toBe(0);
+});
+
+test('comparison portrait and square originals stay inside their fields at every viewport', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1536, height: 1024 });
+  await page.goto(app);
+  const images = await page.evaluate(() => [[6000, 4000], [2400, 3600], [2400, 2400]].map(([width, height], index) => {
+    const canvas = document.createElement('canvas'); canvas.width = width!; canvas.height = height!;
+    const context = canvas.getContext('2d')!;
+    context.fillStyle = '#ffd400'; context.fillRect(0, 0, width!, height!);
+    context.fillStyle = '#1854a8'; context.fillRect(40, 40, width! - 80, height! - 80);
+    return { name: `${index}-frame.png`, base64: canvas.toDataURL('image/png').split(',')[1]! };
+  }));
+  await openFolder(page, images.map(({ name, base64 }) => ({ name, buffer: Buffer.from(base64, 'base64') })), true);
+  await expect(thumbs(page)).toHaveCount(3);
+  await comparisonMode(page); await chooseField(page, 'B');
+  for (const [width, height, viewport] of [[1536, 1024, 'desktop'], [800, 900, 'tablet'], [390, 844, 'mobile'], [320, 700, 'narrow']] as const) {
+    await page.setViewportSize({ width, height });
+    for (const [index, shape] of [[1, 'portrait'], [2, 'square']] as const) {
+      await thumbs(page).nth(index).evaluate((button: HTMLButtonElement) => button.click());
+      await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', `${index}-frame.png`);
+      for (const image of await page.locator('[data-slot] img').all()) await image.evaluate((img: HTMLImageElement) => img.decode());
+      const bounds = await page.locator('[data-slot] img').evaluateAll((images) => images.map((image) => {
+        const rect = image.getBoundingClientRect(), frame = image.parentElement!.getBoundingClientRect();
+        const caption = image.closest('[data-slot]')!.querySelector('p')!.getBoundingClientRect();
+        return { name: image.getAttribute('alt'), image: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+          field: { x: frame.x, y: frame.y, width: frame.width, height: frame.height }, fit: getComputedStyle(image).objectFit,
+          contained: rect.left >= frame.left - .5 && rect.right <= frame.right + .5 && rect.top >= frame.top - .5 && rect.bottom <= frame.bottom + .5,
+          captionClear: rect.bottom <= caption.top + .5 };
+      }));
+      await testInfo.attach(`comparison-${viewport}-${shape}-bounds`, { body: JSON.stringify(bounds, null, 2), contentType: 'application/json' });
+      if (viewport === 'desktop' || viewport === 'mobile') await testInfo.attach(`comparison-${viewport}-${shape}`, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+      expect(bounds.every((item) => item.contained && item.captionClear && item.fit === 'contain')).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    }
+  }
 });

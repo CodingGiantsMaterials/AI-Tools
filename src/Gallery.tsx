@@ -42,7 +42,21 @@ function PreviewDialog({ entry, urls, m, onClose, opener }: { entry: CollectionE
   </dialog>;
 }
 
-interface GalleryProps { entries: readonly CollectionEntry[]; activeId: string; activate: (entryId: string) => void; urls: OriginalUrls; m: Messages }
+export function useGalleryKeyboard(move: (direction: number) => void, blocked = false) {
+  useEffect(() => {
+    const keydown = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (blocked || event.defaultPrevented || event.isComposing || event.keyCode === 229 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
+        document.querySelector('dialog[open], [role="dialog"], [role="listbox"]') ||
+        target instanceof Element && target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="slider"], [role="spinbutton"], [data-shortcuts="off"]')) return;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); move(event.key === 'ArrowLeft' ? -1 : 1); }
+    };
+    window.addEventListener('keydown', keydown);
+    return () => window.removeEventListener('keydown', keydown);
+  });
+}
+
+interface GalleryProps { entries: readonly CollectionEntry[]; activeId: string | null; activate: (entryId: string) => void; urls: OriginalUrls; m: Messages }
 export function Gallery({ entries, activeId, activate, urls, m }: GalleryProps) {
   const activeIndex = entries.findIndex((entry) => entry.entryId === activeId);
   const [modal, setModal] = useState<{ entryId: string; opener: HTMLElement } | null>(null);
@@ -52,17 +66,7 @@ export function Gallery({ entries, activeId, activate, urls, m }: GalleryProps) 
     const next = entries[(activeIndex + direction + entries.length) % entries.length];
     if (next && entries.length > 1) activate(next.entryId);
   };
-  useEffect(() => {
-    const keydown = (event: KeyboardEvent) => {
-      const target = event.target;
-      if (modal || event.defaultPrevented || event.isComposing || event.keyCode === 229 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
-        document.querySelector('dialog[open], [role="dialog"], [role="listbox"]') ||
-        target instanceof Element && target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="slider"], [role="spinbutton"], [data-shortcuts="off"]')) return;
-      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); move(event.key === 'ArrowLeft' ? -1 : 1); }
-    };
-    window.addEventListener('keydown', keydown);
-    return () => window.removeEventListener('keydown', keydown);
-  });
+  useGalleryKeyboard(move, !!modal);
   return <>
     <section className={styles.carousel} aria-label={m.carousel}>
       {entries.map((entry, index) => ({ entry, offset: carouselOffset(index, activeIndex, entries.length) }))
