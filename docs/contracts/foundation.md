@@ -22,6 +22,13 @@ observer with a separate worker request. Local `blob:` reads are not network
 egress. The default page tests retain CSP. WebKit automation is not a test of
 the Safari application or native OS permission dialogs.
 
+SDK, identity, lifecycle and animation probes supply original fixture bytes as
+Playwright file buffers. Windows WebKit path-backed uploads can intermittently
+reject even a direct `File.arrayBuffer()` with `NotFoundError`, before application
+processing. The separate native snapshot-folder test retains directory-path
+input and must be reported independently; its failure is not a passing import
+check. Buffer-input processing tests do not establish native OS picker support.
+
 ## Folder access
 
 `src/files/folder-source.ts` exports `FolderSource`, `FolderEntry`,

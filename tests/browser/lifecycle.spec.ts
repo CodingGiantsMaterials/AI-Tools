@@ -1,14 +1,15 @@
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fixtureFile } from './fixture-file';
 
-const fixture = path.resolve('tests/fixtures/images/static.png');
+const fixture = 'images/static.png';
 
 test('dispose during header read rejects without starting a provenance worker', async ({ page }) => {
   const createdWorkers: string[] = [];
   page.on('worker', (worker) => createdWorkers.push(worker.url()));
   await page.goto('tests/probe/index.html');
-  await page.locator('#file').setInputFiles(fixture);
+  await page.locator('#file').setInputFiles(await fixtureFile(fixture));
   const result = await page.evaluate(async () => {
     let release!: () => void;
     const gate = new Promise<void>((resolve) => { release = resolve; });
@@ -49,7 +50,7 @@ for (const stop of ['timeout', 'dispose', 'abort'] as const) {
       };
     });
     await page.goto('tests/probe/index.html');
-    await page.locator('#file').setInputFiles(fixture);
+    await page.locator('#file').setInputFiles(await fixtureFile(fixture));
     const pending = page.evaluate(async () => {
       const controller = new AbortController();
       Reflect.set(window, 'cancelProvenance', () => controller.abort());
@@ -67,7 +68,7 @@ for (const stop of ['timeout', 'dispose', 'abort'] as const) {
 test('worker startup failure releases ownership and allows the next read', async ({ page }) => {
   await page.route('**/assets/provenance.worker-*.js', (route) => route.fulfill({ contentType: 'text/javascript', body: 'throw new Error("Deliberate startup failure")' }));
   await page.goto('tests/probe/index.html');
-  await page.locator('#file').setInputFiles(fixture);
+  await page.locator('#file').setInputFiles(await fixtureFile(fixture));
   expect((await page.evaluate(() => window.probe.provenance())).value.status).toBe('error');
   await expect.poll(() => page.workers().length).toBe(0);
   await page.unroute('**/assets/provenance.worker-*.js');

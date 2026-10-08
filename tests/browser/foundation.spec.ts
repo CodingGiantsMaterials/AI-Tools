@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { readFile, readdir } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
-
-const fixture = (name: string) => path.resolve('tests/fixtures', name);
+import { fixtureFile } from './fixture-file';
 
 test('directory selection keeps the read-only picker call inside the user gesture', async ({ page }) => {
   await page.goto('tests/probe/index.html');
@@ -72,7 +71,7 @@ test('local SDK reads never request image-supplied resources, including from wor
       ['c2pa/remote.jpg', 'remote'], ['c2pa/no-algorithm.jpg', 'unsupported'],
       ['c2pa/corrupt.jpg', 'error'], ['c2pa/remote-icon.jpg', 'error'],
     ] as const) {
-      await page.locator('#file').setInputFiles(fixture(name));
+      await page.locator('#file').setInputFiles(await fixtureFile(name));
       const raw = await page.evaluate(() => window.probe.raw());
       const result = await page.evaluate(() => window.probe.provenance());
       observations.push({ name, result, raw });
@@ -104,8 +103,9 @@ test('local SDK reads never request image-supplied resources, including from wor
 
 test('original-byte identity runs in a worker and is usable as a persistent IndexedDB key', async ({ page }) => {
   await page.goto('tests/probe/index.html');
-  const bytes = await readFile(fixture('images/static.png'));
-  await page.locator('#file').setInputFiles(fixture('images/static.png'));
+  const file = await fixtureFile('images/static.png');
+  const bytes = file.buffer;
+  await page.locator('#file').setInputFiles(file);
   const result = await page.evaluate(() => window.probe.hash());
   expect(result.value).toBe(createHash('sha256').update(bytes).digest('hex'));
   await page.locator('#file').setInputFiles({ name: 'renamed.png', mimeType: 'image/png', buffer: bytes });
@@ -145,7 +145,8 @@ test('original-byte identity runs in a worker and is usable as a persistent Inde
 for (const filename of ['animated.png', 'animated.webp']) {
   test(`native original ${filename} keeps animating`, async ({ page }) => {
     await page.goto('tests/probe/index.html');
-    await page.locator('#file').setInputFiles(fixture(`images/${filename}`));
+    const file = await fixtureFile(`images/${filename}`);
+    await page.locator('#file').setInputFiles(file);
     const source = await page.evaluate(() => window.probe.original());
     expect(source).toMatch(/^blob:/);
     await page.locator('#original').evaluate((img: HTMLImageElement) => img.decode());
@@ -157,7 +158,7 @@ for (const filename of ['animated.png', 'animated.webp']) {
     }
     expect(hashes.size).toBeGreaterThan(1);
     const original = await page.evaluate(async () => Array.from(new Uint8Array(await (await fetch(document.querySelector<HTMLImageElement>('#original')!.src)).arrayBuffer())));
-    expect(Buffer.from(original)).toEqual(await readFile(fixture(`images/${filename}`)));
+    expect(Buffer.from(original)).toEqual(file.buffer);
     expect(await page.locator('#original').getAttribute('src')).toBe(source);
     await page.evaluate(() => window.probe.dispose());
   });
