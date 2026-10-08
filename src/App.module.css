@@ -16,7 +16,6 @@
 .modes { display: flex; border: 1px solid var(--line); border-radius: 30px; background: var(--soft); padding: 4px; }
 .modes button { min-width: 142px; border: 0; border-radius: 24px; padding: 10px 24px; letter-spacing: .02em; }
 .modes button[aria-pressed="true"] { background: #252f38; color: #fff; }
-.modes button:disabled { background: transparent; opacity: .55; }
 .preferences { display: flex; justify-self: end; align-items: center; gap: 18px; }
 .preferences select { border: 1px solid var(--line); border-radius: 24px; background: var(--surface); padding: 9px 12px; width: 76px; }
 .theme { display: flex; gap: 2px; padding: 3px; background: #252f38; border: 1px solid var(--line); border-radius: 30px; }
@@ -32,7 +31,7 @@
 .collectionStatus p { margin: 4px 0; }
 .carousel { position: relative; width: 100%; min-height: 430px; height: min(55vh, 580px); overflow: hidden; isolation: isolate; }
 .card { position: absolute; left: 50%; top: 50%; width: 42%; height: 82%; padding: 0; border: 0; border-radius: 7px; background: transparent; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); transition: transform 420ms cubic-bezier(.2,.72,.2,1), opacity 420ms ease; }
-.card img, .thumbnail img, .modalImage img { display: block; max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; border-radius: 5px; background: repeating-conic-gradient(var(--check) 0% 25%, var(--soft) 0% 50%) 0 / 16px 16px; }
+.card img, .thumbnail img, .modalImage img, .comparisonImage img { display: block; max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; border-radius: 5px; background: repeating-conic-gradient(var(--check) 0% 25%, var(--soft) 0% 50%) 0 / 16px 16px; }
 .card img { width: auto; height: auto; box-shadow: 0 10px 25px #15213018; }
 .card[data-position="0"] { z-index: 5; opacity: 1; }
 .card[data-position="-1"] { z-index: 3; opacity: .57; transform: translate(-111%, -50%) scale(.79); }
@@ -87,6 +86,24 @@
 .emptyIcon svg { width: 28px; height: 28px; }
 .empty h2 { font-size: 25px; font-weight: 500; margin: 10px 0; }
 .empty p { max-width: 470px; font-size: 14px; line-height: 1.8; color: var(--muted); }
+.comparison { padding: 10px 24px 12px 0; }
+.comparisonFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.comparisonSlot { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.comparisonSlot[data-active="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.slotHeader { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.slotSelect { display: flex; align-items: center; gap: 10px; border: 0; flex: 1; min-width: 0; padding: 3px; text-align: left; }
+.slotSelect strong { font-size: 18px; }
+.slotSelect span { font-size: 11px; color: var(--muted); }
+.pin { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; }
+.pin[aria-pressed="true"] { color: var(--surface); background: var(--accent); }
+.comparisonImage { display: grid; place-items: center; width: 100%; height: clamp(240px, 45vh, 490px); position: relative; padding: 0; border: 0; background: var(--soft); }
+.comparisonImage > span { font-size: 13px; line-height: 1.6; padding: 12px; color: var(--muted); }
+.slotCaption { font: 11px/1.5 ui-monospace, monospace; overflow-wrap: anywhere; margin: 10px 0 0; }
+.slotCaption span { color: var(--muted); }
+.comparisonNavigation { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 20px 0; }
+.comparisonNavigation button { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; }
+.comparisonNavigation span { font-size: 12px; color: var(--muted); }
+.preparedImages { display: none; }
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; padding: 0; margin: -1px; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @media (min-width: 1500px) { .workspace { grid-template-columns: minmax(0, 1fr) 390px; } .inspection { font-size: 13px; padding-left: 30px; } .filename h2 { font-size: 23px; } .app { padding: 24px 46px 26px; } .header { margin-bottom: 20px; } }
 @media (max-width: 1050px) { .app { padding: 16px 20px; } .workspace { grid-template-columns: minmax(0, 1fr) 310px; } .inspection { padding-left: 18px; } .preferences { gap: 10px; } .modes button { min-width: 110px; padding: 9px 16px; } .carousel { min-height: 400px; } }
@@ -100,4 +117,5 @@
   .thumbnails { order: 2; padding-top: 6px; gap: 5px; } .thumbnail { flex-basis: 88px; height: 66px; } .strip { gap: 8px; }
   .inspection { order: 3; border-left: 0; border-top: 1px solid var(--line); padding: 22px 0 0; margin-top: 20px; font-size: 12px; }
   .filename h2 { font-size: 20px; } .row { grid-template-columns: 42% minmax(0, 1fr); } .empty { min-height: 60vh; } .empty h2 { font-size: 22px; } .modal { padding: 10px; height: 94dvh; }
+  .comparison { padding: 8px 0; } .comparisonFields { gap: 8px; } .comparisonSlot { padding: 6px; } .slotHeader { gap: 2px; } .slotSelect { gap: 5px; } .slotSelect span { font-size: 10px; } .pin { width: 28px; height: 30px; } .comparisonImage { height: 260px; } .comparisonNavigation { margin: 12px 0 0; }
 }

@@ -49,11 +49,50 @@ unavailable storage falls back to in-memory preferences. The default theme is
 light. Original metadata values and product names are never translated.
 
 The provided logo is bundled unchanged at `src/assets/coding-giants-small-logo.png`.
-Comparison is a disabled mode placeholder; field assignment and pinning are
-not implemented by this gallery contract.
+
+## Comparison
+
+`comparison-state.ts` owns two entry-ID/name assignments, the active field,
+one optional pinned field and a folder generation. Assignments retain no original
+files or decoded buffers. `Comparison` renders both original revisions at full
+opacity with containment and at most two prepared navigation neighbors. The same
+`OriginalImage`, URL cache, thumbnail strip, keyboard guard and inspection panel
+serve carousel and comparison.
+
+Selecting a field changes inspection and its note immediately. Pinning a field
+selects the other field; pinning the other field transfers the single pin.
+Navigation and thumbnail assignment target the active field unless it is pinned,
+in which case they target the other field and activate it. Navigation skips the
+other field's entry and loops through the remaining choices. Selecting a thumbnail
+already assigned to the opposite field inspects that field without duplicating it.
+The navigation caption identifies the editable field, including when inspecting
+the pinned field. Notes always follow the inspected field's current content ID.
+
+Empty fields explicitly request another image. Two entries occupy distinct fields;
+navigation is disabled when there is no alternative for the editable field.
+Missing unpinned assignments reconcile to available distinct entries. A missing
+pinned assignment retains only its entry ID/name, displays unavailable, and has
+no image, metadata or editable note. It recovers only if that entry returns;
+unpinning releases the missing assignment. Comparison remains visible even when
+the collection becomes empty. Folder changes reset both assignments and pinning.
+
+Leaving comparison selects its available active entry in the carousel. Entering
+comparison assigns or inspects the carousel entry under the same pin rules.
+Metadata and original revisions always come from the current collection; equal-byte
+refreshes retain mounted images, while replacements change their resource keys.
+No additional image editing, overlay, zoom or animation synchronization is applied.
 
 Validate with `npm test`, `npm run build` and `npm run test:browser`.
 The gallery browser suite exercises real production renders, native animation
-in each view, modal focus, four languages, notes, copy, folder states, 100-entry
-resource lifetimes and desktop/mobile screenshots. Synthetic directory handles
-test integration but do not establish native OS permission-dialog behavior.
+in each view, modal focus, four languages, notes, copy, folder states, comparison
+pinning/removal/revisions, 100-entry resource lifetimes and desktop/mobile screenshots.
+Repeated full comparison traversal includes 6000 × 4000, 2400 × 3600 and
+2400 × 1600 originals plus animation, recording selection latency, URL leases,
+mounted images, estimated RGBA buffers and available JS-heap samples. Estimates
+exclude animation buffers, GPU resources and browser caches; there is no whole-browser
+memory cap. ICC fixtures check native conversion of linear RGB and sRGB in every
+view, with Firefox tagged-image color management enabled specifically for the ICC
+test (Playwright otherwise disables it for screenshots), without establishing
+monitor calibration or full color fidelity. Synthetic
+directory handles test integration but do not establish native OS permission-dialog
+behavior. Automated WebKit does not establish actual Safari application behavior.
