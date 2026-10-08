@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24.18.0 <25" },
+  "engines": {
+    "node": ">=24.18.0 <25"
+  },
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
@@ -14,8 +16,10 @@
     "test:browser": "npm run build && npm run build:discovery && playwright test"
   },
   "dependencies": {
-    "@contentauth/c2pa-wasm": "0.13.2",
     "@contentauth/c2pa-utilities": "0.3.1",
+    "@contentauth/c2pa-wasm": "0.13.2",
+    "@xmldom/xmldom": "0.9.12",
+    "exifreader": "4.47.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
@@ -27,6 +31,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-basic-ssl": "2.3.0",
     "@vitejs/plugin-react": "6.1.2",
+    "fake-indexeddb": "6.2.5",
     "typescript": "7.0.2",
     "vite": "8.3.3",
     "vitest": "5.0.3"

@@ -4,6 +4,10 @@
 32 × 32 pixel color swatches. The animations alternate opaque red and blue every
 250 ms, looping indefinitely; no external image assets are involved.
 
+`metadata-data.ts` builds in-memory PNG fixtures with capture-date EXIF/XMP,
+compressed ICC and text, and malformed or oversized metadata. It inserts valid
+CRC-bearing chunks into the local static swatch; it contains no personal images.
+
 The C2PA fixtures originate from the MIT-licensed
 [c2pa-js test assets](https://github.com/contentauth/c2pa-js/tree/main/packages/c2pa-web/test/assets).
 The upstream license is retained in [c2pa/LICENSE.txt](c2pa/LICENSE.txt).

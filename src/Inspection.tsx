@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-import { ProvenanceService } from './provenance/provenance-service';
 import type { Provenance } from './provenance/provenance';
 
 const labels = {
@@ -10,16 +8,6 @@ const labels = {
 };
 
 /** Temporary foundation consumer: display never waits for either background path. */
-export function Inspection({ file, language }: { file: File; language: keyof typeof labels }) {
-  const [provenance, setProvenance] = useState<Provenance['status'] | 'pending'>('pending');
-  useEffect(() => {
-    const service = new ProvenanceService();
-    const controller = new AbortController();
-    const key = { folderGeneration: 0, entryId: 'preview', revision: 0, requestId: 0 };
-    void service.read(file, key, 1, controller.signal).then(({ value }) => {
-      if (!controller.signal.aborted) setProvenance(value.status);
-    }).catch(() => { if (!controller.signal.aborted) setProvenance('error'); });
-    return () => { controller.abort(); service.dispose(); };
-  }, [file]);
-  return <p role="status">{labels[language][provenance]}</p>;
+export function Inspection({ provenance, language }: { provenance: Provenance | null; language: keyof typeof labels }) {
+  return <p role="status">{labels[language][provenance?.status ?? 'pending']}</p>;
 }

@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { pickDirectory, snapshotSource, supportsDirectoryPicker, type FolderSource } from './files/folder-source';
-import { imageFormat, OriginalUrls } from './images/original';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { pickDirectory, snapshotSource, supportsDirectoryPicker } from './files/folder-source';
+import { OriginalUrls } from './images/original';
+import { CollectionController, type CollectionEntry } from './collection/collection-controller';
 import styles from './App.module.css';
 import { Inspection } from './Inspection';
-import { IdentityService } from './identity/identity-service';
 
 const messages = {
   pl: { choose: 'Wybierz folder', refresh: 'Odśwież', intro: 'Otwórz zdjęcia ze swojego urządzenia.', loading: 'Wczytywanie…', empty: 'Brak obsługiwanych zdjęć.', error: 'Nie można odczytać folderu. Wybierz go ponownie.', imageError: 'Nie można wyświetlić zdjęcia.', snapshot: 'Aby wczytać zmiany w folderze, wybierz go ponownie.', language: 'Język' },
@@ -12,90 +12,29 @@ const messages = {
   es: { choose: 'Elegir carpeta', refresh: 'Actualizar', intro: 'Abre fotos de tu dispositivo.', loading: 'Cargando…', empty: 'No hay fotos compatibles.', error: 'No se puede leer la carpeta. Elígela de nuevo.', imageError: 'No se puede mostrar esta foto.', snapshot: 'Para cargar cambios en la carpeta, vuelve a elegirla.', language: 'Idioma' },
 };
 type Language = keyof typeof messages;
-type Status = 'intro' | 'loading' | 'empty' | 'error' | null;
-interface Preview {
-  url: string;
-  name: string;
-  file: File;
-  source: FolderSource;
-  entryId: string;
-  contentId: Promise<string | null>;
-  release(): void;
-}
 
+/** Minimal consumer; the collection contract also supports the full gallery UI. */
 export function App() {
+  const [controller] = useState(() => new CollectionController());
+  const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   const [language, setLanguage] = useState<Language>('pl');
-  const [status, setStatus] = useState<Status>('intro');
-  const [source, setSource] = useState<FolderSource>();
-  const [preview, setPreview] = useState<Preview>();
-  const [failedPreviewUrl, setFailedPreviewUrl] = useState<string>();
+  const [pickerError, setPickerError] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  const generation = useRef(0);
-  const folderGeneration = useRef(0);
-  const revision = useRef(0);
-  const current = useRef<Preview | undefined>(undefined);
-  const currentSource = useRef<FolderSource | undefined>(undefined);
-  const identity = useRef(new IdentityService());
-  const urls = useRef(new OriginalUrls());
   const m = messages[language];
-
+  const active = state.entries.find((entry) => entry.entryId === state.activeId);
   useEffect(() => { document.documentElement.lang = language; }, [language]);
-  useEffect(() => () => preview?.release(), [preview]);
-  useEffect(() => () => { generation.current++; identity.current.dispose(); urls.current.dispose(); }, []);
-
-  function show(next: Preview | undefined) {
-    current.current = next;
-    setPreview(next);
-  }
-
-  async function load(next: FolderSource) {
-    const request = ++generation.current;
-    if (currentSource.current !== next) {
-      folderGeneration.current++;
-      currentSource.current = next;
-      show(undefined);
-    }
-    setSource(next); setStatus('loading');
-    try {
-      for (const entry of await next.list()) {
-        if (request !== generation.current) return;
-        try {
-          const file = await entry.getFile();
-          const format = await imageFormat(file);
-          if (request !== generation.current) return;
-          if (!format) continue;
-          const controller = new AbortController();
-          const contentId = identity.current.hash(file, {
-            folderGeneration: folderGeneration.current, entryId: entry.entryId,
-            revision: revision.current + 1, requestId: request,
-          }, 1, controller.signal).then(({ value }) => value, () => null);
-          const previous = current.current;
-          if (previous?.source === next && previous.entryId === entry.entryId) {
-            const [before, after] = await Promise.all([previous.contentId, contentId]);
-            if (request !== generation.current) { controller.abort(); return; }
-            if (before !== null && before === after) { setStatus(null); return; }
-          }
-          const lease = urls.current.acquire(`${folderGeneration.current}:${entry.entryId}:${++revision.current}`, file);
-          show({ url: lease.url, name: file.name, file, source: next, entryId: entry.entryId, contentId,
-            release: () => { controller.abort(); lease.release(); } });
-          setStatus(null);
-          return;
-        } catch { /* A disappearing file does not stop the folder scan. */ }
-      }
-      if (request === generation.current) { show(undefined); setStatus('empty'); }
-    } catch {
-      if (request === generation.current) setStatus('error');
-    }
-  }
+  useEffect(() => () => { void controller.dispose(); }, [controller]);
 
   async function choose() {
     if (!supportsDirectoryPicker()) { input.current?.click(); return; }
-    try { await load(await pickDirectory()); }
+    try { const source = await pickDirectory(); setPickerError(false); await controller.setSource(source); }
     catch (error) {
-      if (!(error instanceof DOMException && error.name === 'AbortError')) setStatus('error');
+      if (!(error instanceof DOMException && error.name === 'AbortError')) setPickerError(true);
     }
   }
-
+  const status = pickerError || state.status === 'error' || state.status === 'access-denied' ? m.error
+    : state.status === 'no-folder' ? m.intro : state.status === 'loading' ? m.loading
+    : state.status === 'empty' || state.status === 'no-supported' ? m.empty : '';
   return <main className={styles.app}>
     <header className={styles.header}>
       <h1>Web Album</h1>
@@ -106,14 +45,29 @@ export function App() {
     </header>
     <div className={styles.controls}>
       <button onClick={() => void choose()}>{m.choose}</button>
-      {source?.canRefresh && <button disabled={status === 'loading'} onClick={() => void load(source)}>{m.refresh}</button>}
+      {state.canRefresh && <button disabled={state.scanning} onClick={() => void controller.refresh()}>{m.refresh}</button>}
       <input ref={input} type="file" multiple {...{ webkitdirectory: '' }} hidden aria-label={m.choose}
-        onChange={(event) => { if (event.target.files) void load(snapshotSource(Array.from(event.target.files))); event.target.value = ''; }} />
+        onChange={(event) => { if (event.target.files) { setPickerError(false); void controller.setSource(snapshotSource(Array.from(event.target.files))); } event.target.value = ''; }} />
     </div>
-    {source?.kind === 'snapshot' && <p>{m.snapshot}</p>}
-    <p role="status">{status ? m[status] : ''}</p>
-    {preview && failedPreviewUrl === preview.url && <p role="status">{m.imageError}</p>}
-    {preview && <img className={styles.preview} src={preview.url} alt={preview.name} onError={() => setFailedPreviewUrl(preview.url)} />}
-    {preview && <Inspection key={preview.url} file={preview.file} language={language} />}
+    {state.notice === 'reselect' && <p>{m.snapshot}</p>}
+    <p role="status">{status}</p>
+    {active && <Preview key={active.resourceKey} entry={active} error={m.imageError} />}
+    {active && <Inspection provenance={active.provenance} language={language} />}
   </main>;
+}
+
+function Preview({ entry, error }: { entry: CollectionEntry; error: string }) {
+  const [url, setUrl] = useState<string>();
+  const [failed, setFailed] = useState(false);
+  const original = useRef(entry);
+  useEffect(() => {
+    const urls = new OriginalUrls();
+    const lease = urls.acquire(original.current.resourceKey, original.current.file);
+    setUrl(lease.url);
+    return () => { lease.release(); urls.dispose(); };
+  }, []);
+  return <>
+    {failed && <p role="status">{error}</p>}
+    {url && <img className={styles.preview} src={url} alt={entry.name} onError={() => setFailed(true)} />}
+  </>;
 }
