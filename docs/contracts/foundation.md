@@ -84,6 +84,9 @@ The foundation preview retains its mounted image and URL during same-source
 refreshes. It compares original-byte hashes for the same entry and retains the
 lease when they match; changed bytes receive a new revision and lease. Hashing
 does not delay initial display. A failed hash cannot establish equal content.
+Native decode failure belongs to the preview URL independently of folder and
+C2PA status. Its message persists while an unchanged preview is retained and
+does not carry over to a replacement URL.
 
 ## C2PA boundary
 

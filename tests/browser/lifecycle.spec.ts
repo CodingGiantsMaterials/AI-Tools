@@ -105,3 +105,37 @@ test('refresh retains an unchanged native animation and replaces changed bytes',
   await expect(image).not.toHaveAttribute('src', source!);
   await image.evaluate((img: HTMLImageElement) => img.decode());
 });
+
+test('decode failure survives unchanged refresh and clears for a valid replacement', async ({ page }) => {
+  await page.goto('https://127.0.0.1:4174/Web-Album/');
+  const replacement = Array.from((await fixtureFile('images/static.png')).buffer);
+  await page.evaluate((validBytes) => {
+    let bytes = [137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 0];
+    Reflect.set(window, 'replaceFile', () => { bytes = validBytes; });
+    Object.defineProperty(window, 'showDirectoryPicker', { configurable: true, value: async () => ({
+      kind: 'directory', queryPermission: async () => 'granted',
+      async *values() {
+        yield { kind: 'file', name: 'photo.png', getFile: async () =>
+          new File([Uint8Array.from(bytes)], 'photo.png', { type: 'image/png', lastModified: 1 }) };
+      },
+    }) });
+  }, replacement);
+  await page.getByRole('button', { name: 'Wybierz folder' }).click();
+  const error = page.getByText('Nie można wyświetlić zdjęcia.', { exact: true });
+  await expect(error).toBeVisible();
+  const image = page.locator('main > img');
+  const source = await image.getAttribute('src');
+  await image.evaluate((img) => Reflect.set(window, 'originalImage', img));
+  await page.getByRole('button', { name: 'Odśwież' }).click();
+  await expect(page.getByRole('button', { name: 'Odśwież' })).toBeEnabled();
+  await expect(image).toHaveAttribute('src', source!);
+  expect(await image.evaluate((img) => img === Reflect.get(window, 'originalImage'))).toBe(true);
+  expect(await image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth === 0)).toBe(true);
+  await expect(error).toBeVisible();
+  await page.evaluate(() => Reflect.get(window, 'replaceFile')());
+  await page.getByRole('button', { name: 'Odśwież' }).click();
+  await expect(page.getByRole('button', { name: 'Odśwież' })).toBeEnabled();
+  await expect(image).not.toHaveAttribute('src', source!);
+  await image.evaluate((img: HTMLImageElement) => img.decode());
+  await expect(error).toHaveCount(0);
+});

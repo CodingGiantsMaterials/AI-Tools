@@ -12,7 +12,7 @@ const messages = {
   es: { choose: 'Elegir carpeta', refresh: 'Actualizar', intro: 'Abre fotos de tu dispositivo.', loading: 'Cargando…', empty: 'No hay fotos compatibles.', error: 'No se puede leer la carpeta. Elígela de nuevo.', imageError: 'No se puede mostrar esta foto.', snapshot: 'Para cargar cambios en la carpeta, vuelve a elegirla.', language: 'Idioma' },
 };
 type Language = keyof typeof messages;
-type Status = 'intro' | 'loading' | 'empty' | 'error' | 'imageError' | null;
+type Status = 'intro' | 'loading' | 'empty' | 'error' | null;
 interface Preview {
   url: string;
   name: string;
@@ -28,6 +28,7 @@ export function App() {
   const [status, setStatus] = useState<Status>('intro');
   const [source, setSource] = useState<FolderSource>();
   const [preview, setPreview] = useState<Preview>();
+  const [failedPreviewUrl, setFailedPreviewUrl] = useState<string>();
   const input = useRef<HTMLInputElement>(null);
   const generation = useRef(0);
   const folderGeneration = useRef(0);
@@ -111,7 +112,8 @@ export function App() {
     </div>
     {source?.kind === 'snapshot' && <p>{m.snapshot}</p>}
     <p role="status">{status ? m[status] : ''}</p>
-    {preview && <img className={styles.preview} src={preview.url} alt={preview.name} onError={() => setStatus('imageError')} />}
+    {preview && failedPreviewUrl === preview.url && <p role="status">{m.imageError}</p>}
+    {preview && <img className={styles.preview} src={preview.url} alt={preview.name} onError={() => setFailedPreviewUrl(preview.url)} />}
     {preview && <Inspection key={preview.url} file={preview.file} language={language} />}
   </main>;
 }
