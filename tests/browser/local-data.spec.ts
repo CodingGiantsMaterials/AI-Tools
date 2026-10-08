@@ -1,17 +1,29 @@
 import { expect, test } from '@playwright/test';
 import { fixtureFile } from './fixture-file';
-import { metadataPng, textChunk, xmpChunk, xmpPacket, iccChunk, exifChunk } from '../fixtures/metadata-data';
+import { metadataPng, textChunk, xmpChunk, xmpPacket, iccChunk, exifChunk, xmpHistory, pngChunk } from '../fixtures/metadata-data';
 
 test('production metadata worker reads PNG compressed blocks, capture date and untrusted text', async ({ page }) => {
   await page.goto('tests/probe/index.html');
   await page.locator('#file').setInputFiles({ name: 'wrong-extension.jpg', mimeType: 'image/jpeg', buffer: metadataPng(
-    textChunk('Software', 'Saved editor', true), xmpChunk(xmpPacket('<exif:DateTimeOriginal>2024-02-29T08:09:10.123456+02:00</exif:DateTimeOriginal>')),
+    textChunk('Software', 'Saved editor', true), xmpChunk(xmpPacket('<exif:DateTimeOriginal>2024-02-29T08:09:10.123456+02:00</exif:DateTimeOriginal>' + xmpHistory)),
   ) });
   const result = await page.evaluate(() => window.probe.metadata());
   expect(result.value).toMatchObject({ status: 'ready', format: 'image/png', width: 32, height: 32,
-    date: { source: 'xmp', offset: '+02:00', fraction: '123456' }, software: ['Saved editor'] });
+    date: { source: 'xmp', offset: '+02:00', fraction: '123456' }, software: ['Saved editor'], recordedHistory: ['created', 'Editor', '2024-01-01T00:00:00Z'] });
   await page.locator('#file').setInputFiles({ name: 'exif-icc.png', mimeType: 'image/png', buffer: metadataPng(exifChunk(), iccChunk()) });
   expect((await page.evaluate(() => window.probe.metadata())).value).toMatchObject({ status: 'ready', orientation: 6, colorProfile: 'Test RGB profile', date: { source: 'exif', fraction: '123456789' } });
+  await expect.poll(() => page.workers().length).toBe(0);
+});
+
+test('production metadata worker reports malformed text headers without blocking original display', async ({ page }) => {
+  await page.goto('tests/probe/index.html');
+  for (const [type, data] of [['tEXt', 'Software'], ['iTXt', 'Software\0\0\0missing-language-terminator']]) {
+    await page.locator('#file').setInputFiles({ name: 'corrupt-metadata.png', mimeType: 'image/png', buffer: metadataPng(pngChunk(type!, Buffer.from(data!))) });
+    expect((await page.evaluate(() => window.probe.metadata())).value).toMatchObject({ status: 'error', reason: 'read' });
+  }
+  await page.evaluate(() => window.probe.original());
+  await page.locator('#original').evaluate((img: HTMLImageElement) => img.decode());
+  await page.evaluate(() => window.probe.dispose());
   await expect.poll(() => page.workers().length).toBe(0);
 });
 

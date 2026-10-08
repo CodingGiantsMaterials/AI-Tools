@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { captureDate, compareEntries } from '../../src/metadata/date';
 import { normalizeMetadata } from '../../src/metadata/metadata';
 import { readMetadata, metadataLimits } from '../../src/metadata/read-metadata';
-import { metadataPng, textChunk, xmpChunk, xmpPacket, pngChunk, exifChunk, iccChunk } from '../fixtures/metadata-data';
+import { metadataPng, textChunk, xmpChunk, xmpPacket, pngChunk, exifChunk, iccChunk, xmpHistory } from '../fixtures/metadata-data';
 
 const file = (bytes: Uint8Array) => new File([new Uint8Array(bytes)], 'untrusted.jpg', { type: 'image/jpeg' });
 const tag = (value: unknown) => ({ value });
@@ -53,6 +53,29 @@ describe('ordinary metadata adapter', () => {
     expect(metadata.software).toEqual(['Editor', 'Manifest tool']);
     expect(metadata.generators[0]).toHaveLength(2048);
     expect(metadata.aiDeclarations).toEqual(['a photo']);
+  });
+  it('reads recorded editing events from actual XMP history sequences', async () => {
+    const result = await readMetadata(file(metadataPng(xmpChunk(xmpPacket(xmpHistory)))));
+    expect(result.status).toBe('ready');
+    expect(result.recordedHistory).toEqual(['created', 'Editor', '2024-01-01T00:00:00Z']);
+  });
+  it.each([
+    ['tEXt', 'Software'],
+    ['tEXt', '\0text'],
+    ['zTXt', 'Software\0'],
+    ['iTXt', 'Software\0\0\0missing-language-terminator'],
+    ['iTXt', 'Software\0\0\0en\0missing-translated-keyword-terminator'],
+  ])('reports malformed %s text headers as metadata errors', async (type, data) => {
+    const result = await readMetadata(file(metadataPng(pngChunk(type, Buffer.from(data)))));
+    expect(result).toMatchObject({ status: 'error', reason: 'read' });
+  });
+  it.each([
+    ['tEXt', 'Software\0'],
+    ['iTXt', 'Software\0\0\0\0\0'],
+    ['iTXt', 'Software\0\0\0en\0Software\0'],
+  ])('accepts a complete %s header followed by empty text', async (type, data) => {
+    const result = await readMetadata(file(metadataPng(pngChunk(type, Buffer.from(data)))));
+    expect(result).toMatchObject({ status: 'ready', reason: null, software: [] });
   });
   it('returns error for damaged metadata and rejects XML declarations without fetching them', async () => {
     expect((await readMetadata(file(metadataPng(xmpChunk('<x:xmpmeta><broken'))))).status).toBe('error');

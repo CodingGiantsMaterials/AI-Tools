@@ -23,6 +23,7 @@ export const textChunk = (key: string, text: string, compressed = false) => pngC
 
 export const xmpPacket = (body: string) => `<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description xmlns:exif="http://ns.adobe.com/exif/1.0/" xmlns:xmp="http://ns.adobe.com/xap/1.0/">${body}</rdf:Description></rdf:RDF></x:xmpmeta>`;
 export const xmpChunk = (xml: string) => pngChunk('iTXt', Buffer.concat([Buffer.from('XML:com.adobe.xmp\0\0\0\0\0'), Buffer.from(xml)]));
+export const xmpHistory = `<xmpMM:History xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:stEvt="http://ns.adobe.com/xap/1.0/sType/ResourceEvent#"><rdf:Seq><rdf:li rdf:parseType="Resource"><stEvt:action>created</stEvt:action><stEvt:softwareAgent>Editor</stEvt:softwareAgent><stEvt:when>2024-01-01T00:00:00Z</stEvt:when></rdf:li></rdf:Seq></xmpMM:History>`;
 
 export function exifChunk(orientation = 6): Buffer {
   const values: [number, string][] = [[0x9003, '2024:02:29 12:34:56'], [0x9011, '+02:00'], [0x9291, '123456789']];

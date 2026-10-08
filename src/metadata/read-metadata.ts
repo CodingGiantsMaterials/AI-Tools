@@ -6,6 +6,18 @@ import { emptyMetadata, normalizeMetadata, type Metadata } from './metadata';
 export const metadataLimits = { file: 64 * 1024 * 1024, block: 2 * 1024 * 1024, total: 8 * 1024 * 1024, blocks: 128 };
 class LimitError extends Error {}
 
+function checkPngTextHeader(type: string, data: Uint8Array): void {
+  const keywordEnd = data.indexOf(0);
+  if (keywordEnd < 1 || keywordEnd > 79) throw new Error('InvalidTextHeader');
+  if (type === 'tEXt') return; // Empty text is valid after the required separator.
+  if (keywordEnd + (type === 'iTXt' ? 2 : 1) >= data.length) throw new Error('InvalidTextHeader');
+  if (type === 'iTXt') {
+    if (data[keywordEnd + 1]! > 1 || data[keywordEnd + 2] !== 0) throw new Error('UnknownCompression');
+    const languageEnd = data.indexOf(0, keywordEnd + 3);
+    if (languageEnd < 0 || data.indexOf(0, languageEnd + 1) < 0) throw new Error('InvalidTextHeader');
+  } else if (data[keywordEnd + 1] !== 0) throw new Error('UnknownCompression');
+}
+
 function checkTiff(view: DataView): void {
   if (view.byteLength < 8) throw new Error('TruncatedExif');
   const marker = view.getUint16(0);
@@ -58,12 +70,7 @@ function checkBlocks(buffer: ArrayBuffer, format: ImageFormat): { icc: boolean }
       if (end > view.byteLength) throw new Error('TruncatedChunk');
       if ((png ? ['eXIf', 'iCCP', 'tEXt', 'zTXt', 'iTXt'] : ['EXIF', 'XMP ', 'ICCP']).includes(type)) check(offset + 8, length);
       if (type === 'iCCP' || type === 'ICCP') icc = true;
-      if (['zTXt', 'iCCP', 'iTXt'].includes(type)) {
-        const data = new Uint8Array(buffer, offset + 8, length);
-        const zero = data.indexOf(0);
-        if (zero < 1 || zero > 79 || zero + (type === 'iTXt' ? 2 : 1) >= length) throw new Error('InvalidTextHeader');
-        if (type === 'iTXt' ? (data[zero + 1]! > 1 || data[zero + 2] !== 0) : data[zero + 1] !== 0) throw new Error('UnknownCompression');
-      }
+      if (['tEXt', 'zTXt', 'iCCP', 'iTXt'].includes(type)) checkPngTextHeader(type, new Uint8Array(buffer, offset + 8, length));
       if (type === 'eXIf' || type === 'EXIF') {
         const start = offset + 8;
         const prefix = length >= 6 && String.fromCharCode(...new Uint8Array(buffer, start, 6)) === 'Exif\0\0' ? 6 : 0;

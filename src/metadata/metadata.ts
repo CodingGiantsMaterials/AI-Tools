@@ -50,8 +50,7 @@ export function normalizeMetadata(tags: unknown, file: Pick<File, 'name' | 'size
   const colorSpace = tagValue(exif, 'ColorSpace');
   const history = tagValue(xmp, 'History');
   const recordedHistory = Array.isArray(history) ? history.slice(0, 32).flatMap((item) => {
-    const fields = record(item).value;
-    return unique([stringTag(fields, 'action'), stringTag(fields, 'softwareAgent'), stringTag(fields, 'when')]);
+    return unique([stringTag(item, 'action'), stringTag(item, 'softwareAgent'), stringTag(item, 'when')]);
   }).slice(0, 32) : [];
   return { ...emptyMetadata(file, format, 'ready', null), width, height, megapixels: width && height ? width * height / 1_000_000 : null,
     orientation: typeof orientation === 'number' && orientation >= 1 && orientation <= 8 ? orientation : null, date,
