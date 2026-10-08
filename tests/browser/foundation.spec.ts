@@ -3,6 +3,7 @@ import { readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fixtureFile } from './fixture-file';
+import { metadataPng, textChunk, xmpChunk, xmpPacket } from '../fixtures/metadata-data';
 
 test('directory selection keeps the read-only picker call inside the user gesture', async ({ page }) => {
   await page.goto('tests/probe/index.html');
@@ -82,6 +83,15 @@ test('local SDK reads never request image-supplied resources, including from wor
       }
     }
     expect(requests.some((url) => url.endsWith('.wasm'))).toBe(true);
+    await page.locator('#file').setInputFiles({ name: 'untrusted.png', mimeType: 'image/png', buffer: metadataPng(
+      textChunk('Software', '<img src="https://example.invalid/metadata-icon">', true),
+      xmpChunk(xmpPacket('<xmp:CreatorTool>https://example.invalid/creator</xmp:CreatorTool><exif:DateTimeOriginal>2024-01-01T00:00:00Z</exif:DateTimeOriginal>')),
+    ) });
+    const metadata = await page.evaluate(() => window.probe.metadata());
+    expect(metadata.value.status).toBe('ready');
+    expect(metadata.value.software).toContain('<img src="https://example.invalid/metadata-icon">');
+    observations.push({ metadata });
+    expect(requests.some((url) => /metadata.worker-[\w-]+\.js$/.test(url))).toBe(true);
     expect(requests.some((url) => /c2pa_worker.*\.js$/.test(url))).toBe(true);
     expect(requests.filter((value) => {
       const url = new URL(value);

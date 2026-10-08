@@ -42,9 +42,10 @@ Permission or removal failures reject. Snapshot entries retain the imported
 `File` and have `canRefresh: false`: reload requires another user selection.
 The UI must show the translated reselect notice in this mode.
 
-Entry IDs are source-local keys, not content identities. Add a monotonically
-increasing folder generation at the collection boundary. Filename, size and
-modification time cannot prove identical content. Source adapters do not own
+Entry IDs are source-local keys, not content identities. The
+[collection controller](local-data.md#collection) owns monotonically increasing
+folder generations. Filename, size and modification time cannot prove identical
+content. Source adapters do not own
 scan coalescing, collection sorting or active-entry state.
 
 ## Identity and background results
@@ -62,8 +63,8 @@ tasks are allowed and larger priority values run first. Overflow rejects with
 `QueueFull`. Cancellation drops queued jobs or terminates active hash workers.
 Hashing has a 30-second timeout and currently buffers one entire file; callers
 must not infer a browser memory limit from this queue. Call `dispose()` on
-service teardown. The IndexedDB browser probe validates content-key persistence;
-the production notes repository and autosave controller are separate work.
+service teardown. The [notes repository and controller](local-data.md#notes)
+provide production persistence and autosave using this identity.
 
 ## Original image resources
 
@@ -80,10 +81,11 @@ React render. The foundation never resamples, recompresses or extracts frames.
 Native `<img>` preserves APNG/WebP animation and browser orientation; use
 `object-fit: contain` for full-frame views. A small CSS image can still decode
 at full resolution: later collection consumers must limit mounted resources.
-The foundation preview retains its mounted image and URL during same-source
-refreshes. It compares original-byte hashes for the same entry and retains the
-lease when they match; changed bytes receive a new revision and lease. Hashing
-does not delay initial display. A failed hash cannot establish equal content.
+The preview uses the collection controller's resource key to retain its mounted
+image and URL during unchanged refreshes. The controller compares original-byte
+hashes for the same entry and retains the revision when they match; changed bytes
+receive a new revision and lease. Hashing does not delay initial display.
+A failed hash cannot establish equal content.
 Native decode failure belongs to the preview URL independently of folder and
 C2PA status. Its message persists while an unchanged preview is retained and
 does not carry over to a replacement URL.
@@ -109,8 +111,9 @@ malformed data is an error.
 The SDK can return a reader without a readable active manifest: retain present
 detection with partial completeness and an error status.
 
-The minimal normalization exposes only claim-generator text and recorded action
-labels, capped at 2,048 characters and 64 actions (128 assertions inspected).
+Normalization exposes claim-generator text and recorded action labels, capped at
+2,048 characters and 64 actions (128 assertions inspected), plus bounded
+[provenance declarations](local-data.md#provenance).
 `complete` means this normalized active-manifest read finished within its limits;
 it does not mean a complete editing history or verified signature. A claim
 generator is not automatically an AI generator. No manifest icons or thumbnails
@@ -125,5 +128,6 @@ on completion and the owned worker is terminated on every completion,
 cancellation, timeout or failure; consumers dispose the service on teardown.
 The browser probe compares representative data with c2pa-web 0.15.3 using the
 same WASM and Context settings. Repeat the privacy tests whenever SDK versions,
-settings or resource handling change. Production metadata presentation, complete
-normalization, collection management and note editing are not provided here.
+settings or resource handling change. The
+[local data contracts](local-data.md) define collection management, ordinary
+metadata and note editing services separately from their UI presentation.
