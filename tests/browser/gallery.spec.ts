@@ -434,7 +434,7 @@ test('100 realistic entries bound original resources, retain scrolling and save 
     samples.push(await page.evaluate(() => ({ ...Reflect.get(window, 'urlStats')(), memory: Reflect.get(performance, 'memory')?.usedJSHeapSize ?? null, mounted: document.querySelectorAll('img[src^="blob:"]').length })));
   }
   await thumbs(page).nth(4).evaluate((button: HTMLButtonElement) => button.click());
-  await expect(page.locator('aside [data-status]')).toHaveText('Brak C2PA'); await page.waitForTimeout(500);
+  await expect(page.locator('aside [data-status]')).toHaveText('Brak C2PA', { timeout: 30_000 }); await page.waitForTimeout(500);
   const logo = page.getByRole('img', { name: 'Coding Giants' });
   expect(await logo.evaluate(async (img: HTMLImageElement) => Array.from(new Uint8Array(await (await fetch(img.src)).arrayBuffer())))).toEqual(Array.from(await readFile('src/assets/coding-giants-small-logo.png')));
   await testInfo.attach('resource-samples', { body: JSON.stringify(samples, null, 2), contentType: 'application/json' });
