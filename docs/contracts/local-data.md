@@ -128,5 +128,5 @@ tests cover metadata/C2PA worker networking with CSP bypassed, worker cleanup,
 notes after reload, and 100 entries without image decoding. Native animation
 and unchanged-source lifecycle regressions remain in the foundation suite.
 Chromium, Firefox and WebKit automation do not establish real OS permission
-dialogs or Safari application behavior. Full gallery rendering, realistic-image
-memory measurements, modal and comparison interactions belong to UI validation.
+dialogs or Safari application behavior. The [gallery contract](gallery.md)
+describes original-image rendering, modal, notes integration and UI validation.

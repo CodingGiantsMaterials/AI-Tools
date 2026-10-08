@@ -26,3 +26,8 @@ the distinction between detected structure and readable data. It is not a trust
 or signature validation fixture. The embedded fixture also includes certificate
 OCSP, issuer and CRL URLs. Tests disable CSP enforcement for the privacy probe
 so blocked requests cannot masquerade as successful SDK configuration.
+
+`tests/browser/gallery.spec.ts` generates 2400 × 1600 PNG landscapes in memory
+for the 100-entry rendering checks. Native canvas encodes small color-quadrant
+JPEG/PNG fixtures for orientation and transparency checks. These generated test
+images contain no user photos and are never bundled into the application.
