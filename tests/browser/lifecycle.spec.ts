@@ -91,7 +91,7 @@ test('refresh retains an unchanged native animation and replaces changed bytes',
     }) });
   }, bytes);
   await page.getByRole('button', { name: 'Wybierz folder' }).click();
-  const image = page.locator('main > img');
+  const image = page.locator('button[data-position="0"] > img');
   await expect(image).toHaveAttribute('src', /^blob:/);
   await image.evaluate((img: HTMLImageElement) => { Reflect.set(window, 'originalImage', img); return img.decode(); });
   const source = await image.getAttribute('src');
@@ -121,9 +121,9 @@ test('decode failure survives unchanged refresh and clears for a valid replaceme
     }) });
   }, replacement);
   await page.getByRole('button', { name: 'Wybierz folder' }).click();
-  const error = page.getByText('Nie można wyświetlić zdjęcia.', { exact: true });
+  const error = page.locator('button[data-position="0"]').getByText('Nie można wyświetlić zdjęcia.', { exact: true });
   await expect(error).toBeVisible();
-  const image = page.locator('main > img');
+  const image = page.locator('button[data-position="0"] > img');
   const source = await image.getAttribute('src');
   await image.evaluate((img) => Reflect.set(window, 'originalImage', img));
   await page.getByRole('button', { name: 'Odśwież' }).click();

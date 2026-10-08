@@ -1,9 +1,10 @@
 # Web Album
 
-A static browser application for opening local photos. It prepares a collection
-in capture-date order and previews its first supported image. Collection,
-metadata, C2PA and automatic local-note services are available for gallery UI
-consumers.
+A static browser application for browsing local photos in capture-date order.
+A looping carousel, thumbnail strip and enlarged preview display original
+images, including animations. The active-image panel shows recorded metadata,
+C2PA declarations and automatically saved local notes. The interface supports
+Polish, English, German and Spanish, with light and dark themes.
 
 Use Node.js 24 LTS (24.18.0 or later in the 24.x line):
 
@@ -27,4 +28,5 @@ npm run test:browser
 probe into `.discovery-build`; this directory is for tests and is not a release
 artifact. See the [foundation contracts](docs/contracts/foundation.md) and
 [collection and notes contracts](docs/contracts/local-data.md) for service
-interfaces, lifecycle rules and capability limits.
+interfaces, lifecycle rules and capability limits. The
+[gallery contract](docs/contracts/gallery.md) describes the UI integration.

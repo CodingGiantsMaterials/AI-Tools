@@ -37,7 +37,7 @@ test('built application runs under the project subpath with a native snapshot fo
   await page.goto('https://127.0.0.1:4174/Web-Album/');
   await expect(page.getByRole('heading', { name: 'Web Album' })).toBeVisible();
   await page.locator('input[type=file]').setInputFiles(path.resolve('tests/fixtures/images'));
-  await expect(page.locator('main > img')).toBeVisible();
+  await expect(page.locator('button[data-position="0"] > img')).toBeVisible();
   await expect(page.getByText('Aby wczytać zmiany w folderze, wybierz go ponownie.')).toBeVisible();
   await expect(page.getByText('Brak C2PA', { exact: true })).toBeVisible();
   expect(requests.some((url) => /\/Web-Album\/assets\/provenance.worker-[\w-]+\.js$/.test(url))).toBe(true);
