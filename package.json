@@ -14,11 +14,13 @@
     "test:browser": "npm run build && npm run build:discovery && playwright test"
   },
   "dependencies": {
-    "@contentauth/c2pa-web": "0.15.3",
+    "@contentauth/c2pa-wasm": "0.13.2",
+    "@contentauth/c2pa-utilities": "0.3.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@contentauth/c2pa-web": "0.15.3",
     "@playwright/test": "1.64.0",
     "@types/node": "24.19.1",
     "@types/react": "19.3.0",

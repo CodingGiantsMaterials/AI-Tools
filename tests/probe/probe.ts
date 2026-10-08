@@ -2,7 +2,8 @@ import { Reader, createC2pa } from '@contentauth/c2pa-web';
 import wasmSrc from '@contentauth/c2pa-web/resources/c2pa.wasm?url';
 import workerSrc from '@contentauth/c2pa-web/c2pa_worker?url';
 import { IdentityService } from '../../src/identity/identity-service';
-import { localReadContext, ProvenanceService } from '../../src/provenance/provenance-service';
+import { ProvenanceService } from '../../src/provenance/provenance-service';
+import { localReadContext } from '../../src/provenance/provenance';
 import { OriginalUrls } from '../../src/images/original';
 import { directorySource, snapshotSource, pickDirectory } from '../../src/files/folder-source';
 
@@ -21,7 +22,7 @@ const probe = {
     });
   },
   async hash() { return identity.hash(file(), key); },
-  async provenance() { return provenance.read(file(), key); },
+  async provenance(signal?: AbortSignal) { return provenance.read(file(), key, 0, signal); },
   async raw() {
     const sdk = await createC2pa({ wasmSrc, workerSrc: new URL(workerSrc, location.href) });
     let reader: Reader | null = null;

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 
@@ -40,7 +40,7 @@ test('built application runs under the project subpath with a native snapshot fo
   await expect(page.locator('main > img')).toBeVisible();
   await expect(page.getByText('Aby wczytać zmiany w folderze, wybierz go ponownie.')).toBeVisible();
   await expect(page.getByText('Brak C2PA', { exact: true })).toBeVisible();
-  expect(requests.some((url) => /\/Web-Album\/assets\/c2pa_worker-[\w-]+\.js$/.test(url))).toBe(true);
+  expect(requests.some((url) => /\/Web-Album\/assets\/provenance.worker-[\w-]+\.js$/.test(url))).toBe(true);
   expect(requests.some((url) => /\/Web-Album\/assets\/identity.worker-[\w-]+\.js$/.test(url))).toBe(true);
   expect(requests.some((url) => /\/Web-Album\/assets\/c2pa_bg-[\w-]+\.wasm$/.test(url))).toBe(true);
   expect(await page.evaluate(() => crossOriginIsolated)).toBe(false);
@@ -49,6 +49,7 @@ test('built application runs under the project subpath with a native snapshot fo
 });
 
 test('local SDK reads never request image-supplied resources, including from workers', async ({ browser }, testInfo) => {
+  const staticAssets = new Set((await readdir('.discovery-build/assets')).map((name) => `/Web-Album/assets/${name}`));
   // Bypass CSP deliberately: a forbidden SDK request must be observed, not hidden by policy.
   const context = await browser.newContext({ bypassCSP: true, ignoreHTTPSErrors: true });
   const requests: string[] = [];
@@ -89,7 +90,7 @@ test('local SDK reads never request image-supplied resources, including from wor
       return url.origin !== 'https://127.0.0.1:4173' || url.search !== '' || !(
         url.pathname === '/Web-Album/tests/probe/index.html' ||
         url.pathname === '/Web-Album/tests/probe/privacy-observer-control' ||
-        /^\/Web-Album\/assets\/(probe|provenance-service|c2pa_worker|c2pa_bg|network.worker)-[\w-]+\.(js|wasm)$/.test(url.pathname)
+        staticAssets.has(url.pathname)
       );
     })).toEqual([]);
     expect(failures).toEqual([]);

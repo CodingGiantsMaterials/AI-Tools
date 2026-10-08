@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { IdentityService } from './identity/identity-service';
-import { ProvenanceService, type Provenance } from './provenance/provenance-service';
+import { ProvenanceService } from './provenance/provenance-service';
+import type { Provenance } from './provenance/provenance';
 
 const labels = {
   pl: { pending: 'Odczyt informacji o pochodzeniu…', detected: 'Wykryto C2PA', none: 'Brak C2PA', remote: 'Manifest zewnętrzny — nie pobrano', unsupported: 'Nieobsługiwany wariant C2PA', error: 'Błąd odczytu C2PA' },
@@ -13,15 +13,13 @@ const labels = {
 export function Inspection({ file, language }: { file: File; language: keyof typeof labels }) {
   const [provenance, setProvenance] = useState<Provenance['status'] | 'pending'>('pending');
   useEffect(() => {
-    const identity = new IdentityService();
     const service = new ProvenanceService();
     const controller = new AbortController();
     const key = { folderGeneration: 0, entryId: 'preview', revision: 0, requestId: 0 };
-    void identity.hash(file, key, 1, controller.signal).catch(() => { /* Display is independent of identity. */ });
     void service.read(file, key, 1, controller.signal).then(({ value }) => {
       if (!controller.signal.aborted) setProvenance(value.status);
     }).catch(() => { if (!controller.signal.aborted) setProvenance('error'); });
-    return () => { controller.abort(); identity.dispose(); service.dispose(); };
+    return () => { controller.abort(); service.dispose(); };
   }, [file]);
   return <p role="status">{labels[language][provenance]}</p>;
 }

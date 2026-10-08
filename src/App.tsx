@@ -3,6 +3,7 @@ import { pickDirectory, snapshotSource, supportsDirectoryPicker, type FolderSour
 import { imageFormat, OriginalUrls } from './images/original';
 import styles from './App.module.css';
 import { Inspection } from './Inspection';
+import { IdentityService } from './identity/identity-service';
 
 const messages = {
   pl: { choose: 'Wybierz folder', refresh: 'Odśwież', intro: 'Otwórz zdjęcia ze swojego urządzenia.', loading: 'Wczytywanie…', empty: 'Brak obsługiwanych zdjęć.', error: 'Nie można odczytać folderu. Wybierz go ponownie.', imageError: 'Nie można wyświetlić zdjęcia.', snapshot: 'Aby wczytać zmiany w folderze, wybierz go ponownie.', language: 'Język' },
@@ -12,25 +13,48 @@ const messages = {
 };
 type Language = keyof typeof messages;
 type Status = 'intro' | 'loading' | 'empty' | 'error' | 'imageError' | null;
+interface Preview {
+  url: string;
+  name: string;
+  file: File;
+  source: FolderSource;
+  entryId: string;
+  contentId: Promise<string | null>;
+  release(): void;
+}
 
 export function App() {
   const [language, setLanguage] = useState<Language>('pl');
   const [status, setStatus] = useState<Status>('intro');
   const [source, setSource] = useState<FolderSource>();
-  const [preview, setPreview] = useState<{ url: string; name: string; file: File }>();
+  const [preview, setPreview] = useState<Preview>();
   const input = useRef<HTMLInputElement>(null);
   const generation = useRef(0);
-  const release = useRef<(() => void) | undefined>(undefined);
+  const folderGeneration = useRef(0);
+  const revision = useRef(0);
+  const current = useRef<Preview | undefined>(undefined);
+  const currentSource = useRef<FolderSource | undefined>(undefined);
+  const identity = useRef(new IdentityService());
   const urls = useRef(new OriginalUrls());
   const m = messages[language];
 
   useEffect(() => { document.documentElement.lang = language; }, [language]);
-  useEffect(() => () => { generation.current++; release.current?.(); urls.current.dispose(); }, []);
+  useEffect(() => () => preview?.release(), [preview]);
+  useEffect(() => () => { generation.current++; identity.current.dispose(); urls.current.dispose(); }, []);
+
+  function show(next: Preview | undefined) {
+    current.current = next;
+    setPreview(next);
+  }
 
   async function load(next: FolderSource) {
     const request = ++generation.current;
-    release.current?.(); release.current = undefined;
-    setPreview(undefined); setSource(next); setStatus('loading');
+    if (currentSource.current !== next) {
+      folderGeneration.current++;
+      currentSource.current = next;
+      show(undefined);
+    }
+    setSource(next); setStatus('loading');
     try {
       for (const entry of await next.list()) {
         if (request !== generation.current) return;
@@ -39,13 +63,25 @@ export function App() {
           const format = await imageFormat(file);
           if (request !== generation.current) return;
           if (!format) continue;
-          const lease = urls.current.acquire(`${request}:${entry.entryId}`, file);
-          release.current = lease.release;
-          setPreview({ url: lease.url, name: file.name, file }); setStatus(null);
+          const controller = new AbortController();
+          const contentId = identity.current.hash(file, {
+            folderGeneration: folderGeneration.current, entryId: entry.entryId,
+            revision: revision.current + 1, requestId: request,
+          }, 1, controller.signal).then(({ value }) => value, () => null);
+          const previous = current.current;
+          if (previous?.source === next && previous.entryId === entry.entryId) {
+            const [before, after] = await Promise.all([previous.contentId, contentId]);
+            if (request !== generation.current) { controller.abort(); return; }
+            if (before !== null && before === after) { setStatus(null); return; }
+          }
+          const lease = urls.current.acquire(`${folderGeneration.current}:${entry.entryId}:${++revision.current}`, file);
+          show({ url: lease.url, name: file.name, file, source: next, entryId: entry.entryId, contentId,
+            release: () => { controller.abort(); lease.release(); } });
+          setStatus(null);
           return;
         } catch { /* A disappearing file does not stop the folder scan. */ }
       }
-      if (request === generation.current) setStatus('empty');
+      if (request === generation.current) { show(undefined); setStatus('empty'); }
     } catch {
       if (request === generation.current) setStatus('error');
     }

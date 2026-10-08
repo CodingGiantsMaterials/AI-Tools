@@ -11,8 +11,8 @@ npm run dev
 ```
 
 The development server uses HTTPS with a locally generated, self-signed
-certificate. The C2PA SDK requires an HTTPS worker URL. Production assets are
-built for `/Web-Album/` and need only static HTTPS hosting.
+certificate. Production assets are built for `/Web-Album/` and need only static
+HTTPS hosting. The browser discovery probe also uses HTTPS for its reference SDK.
 
 ```powershell
 npm test

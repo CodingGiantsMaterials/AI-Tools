@@ -8,7 +8,7 @@ and `package-lock.json`. `npm ci`, `npm test`, `npm run build` and
 with `npx playwright install chromium firefox webkit` first.
 
 Production output is `dist` with base `/Web-Album/`. Workers and WASM are local
-hashed assets; HTTPS is required by the C2PA SDK's external-worker loader.
+hashed assets. The reference SDK in the discovery probe requires HTTPS.
 No COOP/COEP headers, SharedArrayBuffer, service worker, server routing or backend
 are required. Local dev/preview use a generated self-signed certificate.
 Development alone permits inline scripts/styles for Vite refresh; production
@@ -73,12 +73,18 @@ React render. The foundation never resamples, recompresses or extracts frames.
 Native `<img>` preserves APNG/WebP animation and browser orientation; use
 `object-fit: contain` for full-frame views. A small CSS image can still decode
 at full resolution: later collection consumers must limit mounted resources.
+The foundation preview retains its mounted image and URL during same-source
+refreshes. It compares original-byte hashes for the same entry and retains the
+lease when they match; changed bytes receive a new revision and lease. Hashing
+does not delay initial display. A failed hash cannot establish equal content.
 
 ## C2PA boundary
 
 `ProvenanceService.read(file, key, priority?, signal?)` returns normalized data
-without exposing SDK objects to UI consumers. Each read passes the explicit
-`localReadContext` to `Reader.fromBlob`. In c2pa-web 0.15.3 its `verify` settings
+without exposing SDK objects to UI consumers. A directly owned worker uses
+`@contentauth/c2pa-wasm` 0.13.2 and passes the serialized `localReadContext` to
+`WasmReader.fromBlob`. The Context comes from c2pa-utilities 0.3.1. Its `verify`
+settings
 disable `verifyAfterReading`, `verifyTrust`, `verifyTimestampTrust`,
 `remoteManifestFetch` and `ocspFetch`. Trust/CAWG anchor inputs are empty and
 trust-list handling is disabled. Never replace this with the SDK defaults or
@@ -87,8 +93,9 @@ pass metadata-sourced URLs to trust settings or resource helpers.
 Status codes are `detected`, `none`, `remote`, `unsupported` and `error`.
 `detection` independently records `present`, `absent`, `external` or `unknown`;
 `completeness` records `complete`, `partial` or `not-read`. `none` is reserved for
-the SDK's null result. Remote manifest references remain explicit and are not
-fetched. Missing/unknown algorithms are unsupported; malformed data is an error.
+the native SDK's exact `C2pa(JumbfNotFound)` result. Remote manifest references
+remain explicit and are not fetched. Missing/unknown algorithms are unsupported;
+malformed data is an error.
 The SDK can return a reader without a readable active manifest: retain present
 detection with partial completeness and an error status.
 
@@ -100,9 +107,13 @@ generator is not automatically an AI generator. No manifest icons or thumbnails
 are resolved. The Polish detected status is exactly `Wykryto C2PA`.
 
 One C2PA read is active at a time, with the same bounded priority queue as
-identity. Input above 64 MiB returns `unsupported`; reads time out after 20 s.
+identity. Input above 64 MiB returns `unsupported`; the whole active read times
+out after 20 s, including signature detection and WASM initialization.
+Cancellation and disposal reject with `AbortError`, also during those phases.
 These limits affect provenance, never native image display. Readers are freed
-and their SDK workers disposed after each operation; consumers dispose the
-service on teardown. Repeat the privacy tests whenever SDK versions, settings
-or resource handling change. Production metadata presentation, complete
+on completion and the owned worker is terminated on every completion,
+cancellation, timeout or failure; consumers dispose the service on teardown.
+The browser probe compares representative data with c2pa-web 0.15.3 using the
+same WASM and Context settings. Repeat the privacy tests whenever SDK versions,
+settings or resource handling change. Production metadata presentation, complete
 normalization, collection management and note editing are not provided here.
