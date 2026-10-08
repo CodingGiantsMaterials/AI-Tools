@@ -1,0 +1,10 @@
+:global(body) { margin: 0; background: #fff; color: #212121; font-family: system-ui, sans-serif; }
+:global(button), :global(select) { font: inherit; padding: .6rem .9rem; border: 1px solid #bdbdbd; border-radius: .5rem; background: #fff; color: inherit; }
+:global(button) { cursor: pointer; }
+:global(:focus-visible) { outline: 3px solid #235da8; outline-offset: 3px; }
+.app { max-width: 1200px; margin: auto; padding: 2rem; }
+.header { display: flex; gap: 2rem; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+.header h1 { font-size: 1.4rem; font-weight: 500; }
+.controls { display: flex; gap: 1rem; }
+.preview { display: block; width: 100%; height: min(65vh, 800px); object-fit: contain; background: repeating-conic-gradient(#f3f3f3 0% 25%, #fff 0% 50%) 0 / 20px 20px; }
+@media (max-width: 600px) { .app { padding: 1rem; } }
