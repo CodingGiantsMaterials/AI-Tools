@@ -66,6 +66,33 @@ test('production notes survive reopening and retain content identity across rena
   }));
 });
 
+test('production notes retain conflicting drafts from another tab despite extra local edits', async ({ page, context }) => {
+  await page.goto('tests/probe/index.html');
+  const other = await context.newPage();
+  await other.goto('tests/probe/index.html');
+  const first = await page.evaluateHandle(() => window.probe.createNotes());
+  const second = await other.evaluateHandle(() => window.probe.createNotes());
+  try {
+    await first.evaluate(async (notes) => { await notes.select('a'.repeat(64)); notes.edit('initial'); await notes.flush(); });
+    await second.evaluate((notes) => notes.select('a'.repeat(64)));
+    await first.evaluate(async (notes) => { notes.edit('committed elsewhere'); await notes.flush(); });
+    const state = await second.evaluate(async (notes) => {
+      notes.edit('local draft'); notes.edit('local draft with more typing'); await notes.flush();
+      return notes.getSnapshot();
+    });
+    expect(state).toMatchObject({ text: 'local draft with more typing', revision: 3, status: 'error', error: 'write' });
+    const stored = await page.evaluate(async () => {
+      const notes = window.probe.createNotes();
+      try { await notes.select('a'.repeat(64)); return notes.getSnapshot(); }
+      finally { await notes.dispose(); }
+    });
+    expect(stored).toMatchObject({ text: 'committed elsewhere', revision: 2, status: 'saved' });
+  } finally {
+    await first.evaluate((notes) => notes.dispose()); await second.evaluate((notes) => notes.dispose());
+    await first.dispose(); await second.dispose(); await other.close();
+  }
+});
+
 test('100 original entries load without image decoding and finish bounded background work', async ({ page }) => {
   await page.goto('tests/probe/index.html');
   await page.locator('#file').setInputFiles(await fixtureFile('images/animated.webp'));

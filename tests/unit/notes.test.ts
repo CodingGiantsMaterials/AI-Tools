@@ -9,12 +9,12 @@ afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
 
 it('persists revisions by full content ID across reopening and rejects stale writes', async () => {
   const factory = new IDBFactory();
-  const first = new NotesRepository(factory); await first.save(note(a, 2)); await first.save(note(b, 1, 'other')); await first.close();
+  const first = new NotesRepository(factory); await first.save(note(a, 2), 0); await first.save(note(b, 1, 'other'), 0); await first.close();
   const reopened = new NotesRepository(factory);
   expect(await reopened.get(a)).toEqual(note(a, 2)); expect(await reopened.get(b)).toEqual(note(b, 1, 'other'));
-  await expect(reopened.save(note(a, 1, 'old'))).rejects.toThrow('NoteConflict');
+  await expect(reopened.save(note(a, 3, 'old'), 1)).rejects.toThrow('NoteConflict');
   expect(await reopened.get(a)).toEqual(note(a, 2));
-  await expect(reopened.save(note('photo.png'))).rejects.toThrow('InvalidNote');
+  await expect(reopened.save(note('photo.png'), 0)).rejects.toThrow('InvalidNote');
   await reopened.close();
 });
 
@@ -26,18 +26,37 @@ it('does not report put request success as transaction success', async () => {
     request.addEventListener('success', () => this.transaction.abort());
     return request;
   });
-  await expect(repository.save(note(a))).rejects.toThrow('NotesWriteFailed');
+  await expect(repository.save(note(a), 0)).rejects.toThrow('NotesWriteFailed');
   expect(await repository.get(a)).toBeNull(); await repository.close();
 });
 
 it('captures the content and revision before opening the database asynchronously', async () => {
   const repository = new NotesRepository(new IDBFactory());
   const draft = note(a);
-  const write = repository.save(draft);
+  const write = repository.save(draft, 0);
   draft.contentId = b; draft.text = 'changed'; draft.revision = 2;
   await write;
   expect(await repository.get(a)).toEqual(note(a)); expect(await repository.get(b)).toBeNull();
   await repository.close();
+});
+
+it.each([false, true])('rejects a stale draft even when it has more local edits (existing note: %s)', async (existing) => {
+  const factory = new IDBFactory();
+  const first = new NotesController(new NotesRepository(factory), 60_000);
+  const second = new NotesController(new NotesRepository(factory), 60_000);
+  const observer = new NotesRepository(factory);
+  try {
+    await first.select(a);
+    if (existing) { first.edit('initial'); await first.flush(); }
+    await second.select(a);
+    first.edit('committed elsewhere'); await first.flush();
+    second.edit('local draft'); second.edit('local draft with more typing'); await second.flush();
+    expect(second.getSnapshot()).toMatchObject({ text: 'local draft with more typing', status: 'error', error: 'write' });
+    expect(await observer.get(a)).toMatchObject({ text: 'committed elsewhere', revision: existing ? 2 : 1 });
+    await second.flush();
+    expect(second.getSnapshot()).toMatchObject({ text: 'local draft with more typing', status: 'error', error: 'write' });
+    expect(await observer.get(a)).toMatchObject({ text: 'committed elsewhere', revision: existing ? 2 : 1 });
+  } finally { await first.dispose(); await second.dispose(); await observer.close(); }
 });
 
 function memoryStore() {
@@ -50,7 +69,7 @@ it('flushes the correct content and revision on a switch and retains edits made 
   const { store, values } = memoryStore();
   let finish!: () => void;
   const save = store.save;
-  store.save = vi.fn().mockImplementationOnce(async (value: Note) => { await new Promise<void>((resolve) => { finish = resolve; }); await save(value); }).mockImplementation(save);
+  store.save = vi.fn().mockImplementationOnce(async (value: Note, expectedRevision: number) => { await new Promise<void>((resolve) => { finish = resolve; }); await save(value, expectedRevision); }).mockImplementation(save);
   const controller = new NotesController(store, 60_000);
   await controller.select(a); controller.edit('first');
   const flush = controller.flush(); await vi.waitFor(() => expect(finish).toBeDefined());

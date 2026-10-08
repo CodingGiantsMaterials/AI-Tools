@@ -87,18 +87,23 @@ No manifest icons, thumbnails or linked resources are resolved.
 `NotesRepository` owns IndexedDB `web-album-local-notes`, schema version 1,
 store `notes` keyed by full-byte SHA-256 `contentId`. Records contain `text`,
 `updatedAt` and positive integer `revision`. `get()` returns a note or null;
-`save()` resolves only on transaction completion and rejects stale/conflicting
-revisions. `close()` closes the connection. The database name identifies the
-application, not an isolation boundary from other same-origin applications.
+`save(note, expectedRevision)` compares the stored revision inside its write
+transaction with the revision originally loaded or last successfully committed
+by that draft (zero means no record). The new note revision must exceed that
+base. A mismatch rejects the write, regardless of the number of local edits.
+Saving resolves only on transaction completion. `close()` closes the connection.
+The database name identifies the application, not an isolation boundary from
+other same-origin applications.
 
 `NotesController` exposes `select(contentId | null)`, `edit(text)`, `flush()`,
 `flushAll()`, `getSnapshot()`, `subscribe()` and asynchronous `dispose()`.
 Select null while identity is unavailable. Selection immediately clears the
 visible previous note, and flushes the previous content's pending draft.
 Typing updates a per-content draft immediately; a 300 ms debounce automatically
-starts the write. Each write captures the content ID, text and revision. Edits
-during a transaction receive their own later write. Identical copies/renames
-share notes; changed bytes never inherit a previous content's note.
+starts the write. Each write captures the content ID, text, local revision and
+last committed revision. Edits during a transaction receive their own later
+write. Identical copies/renames share notes; changed bytes never inherit a
+previous content's note.
 
 State codes: `identity-pending`, `loading`, `ready`, `dirty`, `saving`, `saved`,
 `error`; errors distinguish `read` from `write`. Disable editing without a loaded

@@ -73,7 +73,7 @@ export class NotesController {
       while (draft.note.revision > draft.savedRevision) {
         const snapshot = { ...draft.note };
         draft.status = 'saving'; draft.error = null; this.showDraft(contentId);
-        try { await this.repository.save(snapshot); }
+        try { await this.repository.save(snapshot, draft.savedRevision); }
         catch { draft.status = 'error'; draft.error = 'write'; this.showDraft(contentId); return; }
         draft.savedRevision = snapshot.revision;
         draft.status = draft.note.revision === snapshot.revision ? 'saved' : 'dirty';

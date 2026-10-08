@@ -6,7 +6,7 @@ export interface Note {
 }
 export interface NotesStore {
   get(contentId: string): Promise<Note | null>;
-  save(note: Note): Promise<void>;
+  save(note: Note, expectedRevision: number): Promise<void>;
   close(): Promise<void>;
 }
 export const notesDatabase = { name: 'web-album-local-notes', version: 1, store: 'notes' } as const;
@@ -62,8 +62,8 @@ export class NotesRepository implements NotesStore {
     });
   }
 
-  async save(note: Note): Promise<void> {
-    if (!validNote(note)) throw new Error('InvalidNote');
+  async save(note: Note, expectedRevision: number): Promise<void> {
+    if (!validNote(note) || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || note.revision <= expectedRevision) throw new Error('InvalidNote');
     const snapshot = { ...note };
     const db = await this.open();
     return new Promise((resolve, reject) => {
@@ -73,8 +73,7 @@ export class NotesRepository implements NotesStore {
       let conflict = false;
       request.onsuccess = () => {
         const previous: unknown = request.result;
-        if (previous !== undefined && (!validNote(previous) || previous.revision > snapshot.revision ||
-          previous.revision === snapshot.revision && previous.text !== snapshot.text)) {
+        if (previous === undefined ? expectedRevision !== 0 : !validNote(previous) || previous.revision !== expectedRevision) {
           conflict = true; tx.abort(); return;
         }
         store.put(snapshot);
