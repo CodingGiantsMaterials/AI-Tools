@@ -714,3 +714,38 @@ test('comparison survives repeated full traversal of 100 realistic originals wit
   await expect.poll(() => page.evaluate(() => Reflect.get(window, 'comparisonResources')().live)).toBe(0);
   await expect.poll(() => page.workers().length).toBe(0);
 });
+
+test('comparison portrait and square originals stay inside their fields at every viewport', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1536, height: 1024 });
+  await page.goto(app);
+  const images = await page.evaluate(() => [[6000, 4000], [2400, 3600], [2400, 2400]].map(([width, height], index) => {
+    const canvas = document.createElement('canvas'); canvas.width = width!; canvas.height = height!;
+    const context = canvas.getContext('2d')!;
+    context.fillStyle = '#ffd400'; context.fillRect(0, 0, width!, height!);
+    context.fillStyle = '#1854a8'; context.fillRect(40, 40, width! - 80, height! - 80);
+    return { name: `${index}-frame.png`, base64: canvas.toDataURL('image/png').split(',')[1]! };
+  }));
+  await openFolder(page, images.map(({ name, base64 }) => ({ name, buffer: Buffer.from(base64, 'base64') })), true);
+  await expect(thumbs(page)).toHaveCount(3);
+  await comparisonMode(page); await chooseField(page, 'B');
+  for (const [width, height, viewport] of [[1536, 1024, 'desktop'], [800, 900, 'tablet'], [390, 844, 'mobile'], [320, 700, 'narrow']] as const) {
+    await page.setViewportSize({ width, height });
+    for (const [index, shape] of [[1, 'portrait'], [2, 'square']] as const) {
+      await thumbs(page).nth(index).evaluate((button: HTMLButtonElement) => button.click());
+      await expect(field(page, 'B').locator('img')).toHaveAttribute('alt', `${index}-frame.png`);
+      for (const image of await page.locator('[data-slot] img').all()) await image.evaluate((img: HTMLImageElement) => img.decode());
+      const bounds = await page.locator('[data-slot] img').evaluateAll((images) => images.map((image) => {
+        const rect = image.getBoundingClientRect(), frame = image.parentElement!.getBoundingClientRect();
+        const caption = image.closest('[data-slot]')!.querySelector('p')!.getBoundingClientRect();
+        return { name: image.getAttribute('alt'), image: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+          field: { x: frame.x, y: frame.y, width: frame.width, height: frame.height }, fit: getComputedStyle(image).objectFit,
+          contained: rect.left >= frame.left - .5 && rect.right <= frame.right + .5 && rect.top >= frame.top - .5 && rect.bottom <= frame.bottom + .5,
+          captionClear: rect.bottom <= caption.top + .5 };
+      }));
+      await testInfo.attach(`comparison-${viewport}-${shape}-bounds`, { body: JSON.stringify(bounds, null, 2), contentType: 'application/json' });
+      if (viewport === 'desktop' || viewport === 'mobile') await testInfo.attach(`comparison-${viewport}-${shape}`, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+      expect(bounds.every((item) => item.contained && item.captionClear && item.fit === 'contain')).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    }
+  }
+});

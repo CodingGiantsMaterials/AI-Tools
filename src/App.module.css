@@ -96,7 +96,7 @@
 .slotSelect span { font-size: 11px; color: var(--muted); }
 .pin { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; }
 .pin[aria-pressed="true"] { color: var(--surface); background: var(--accent); }
-.comparisonImage { display: grid; place-items: center; width: 100%; height: clamp(240px, 45vh, 490px); position: relative; padding: 0; border: 0; background: var(--soft); }
+.comparisonImage { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; width: 100%; height: clamp(240px, 45vh, 490px); position: relative; padding: 0; border: 0; background: var(--soft); }
 .comparisonImage > span { font-size: 13px; line-height: 1.6; padding: 12px; color: var(--muted); }
 .slotCaption { font: 11px/1.5 ui-monospace, monospace; overflow-wrap: anywhere; margin: 10px 0 0; }
 .slotCaption span { color: var(--muted); }
