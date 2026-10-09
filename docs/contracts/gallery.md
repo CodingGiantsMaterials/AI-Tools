@@ -43,8 +43,11 @@ shortcuts exclude editing, composition, selectors, modifier keys and open dialog
 
 `Inspection` shows resolution, format, file size and C2PA provenance as untrusted
 text. The C2PA section shows its status and available declarations; declaration
-tools and explicitly declared AI generators have distinct labels. Copy uses the
-clipboard API only in a button gesture and reports failure locally.
+tools and explicitly declared AI generators have distinct labels. A single copy
+button beside the filename copies the filename, displayed metadata values and
+C2PA status, declarations and caveat as labeled plain text in the current UI
+language. Multiline values are indented, and metadata read notices are included.
+Copy uses the clipboard API only in a button gesture and reports failure locally.
 `NotesEditor` subscribes separately, masks stale selections, disables editing
 until a draft is available and flushes on blur. The application also flushes on
 visibility loss and pagehide; these final transactions remain best effort.
