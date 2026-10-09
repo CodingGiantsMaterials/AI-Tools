@@ -33,8 +33,8 @@ publication or merge.
 4. Derive the message from the staged result using the
    [message format](../CONVENTIONAL_COMMITS.md).
 5. Commit the reviewed index, verify the commit's contents, and inspect the
-   remaining status. Report the hash, subject, validation outcome, and any
-   remaining work briefly.
+   remaining status. Briefly report the hash, subject, name of the branch on
+   which the commit was created, validation outcome, and any remaining work.
 
 ## Pull request
 
