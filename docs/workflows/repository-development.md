@@ -11,8 +11,9 @@ Follow the [shared execution rules](../../AGENTS.md). Finalization follows the
   an assigned branch, reuse the current non-default branch; when starting on
   `main` or the default branch, create a dedicated task branch from the current
   `HEAD` before editing.
-- Commit all task changes on a separate task branch. Do not edit or commit
-  directly on `main` or the default branch.
+- Commit all task changes on a separate task branch before the final response.
+  A change task is complete only when all its changes have been committed.
+  Do not edit or commit directly on `main` or the default branch.
 - Use short, descriptive branch names with lowercase ASCII letters, digits,
   slashes, and hyphens.
 - Do not include attribution to the authoring agent, assistant, model,

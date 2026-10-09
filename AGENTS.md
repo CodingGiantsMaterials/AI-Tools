@@ -8,10 +8,10 @@ reading to instructions and material relevant to the requested work.
 Before changing implementation, documentation, configuration, or tests, read
 [repository development](docs/workflows/repository-development.md).
 
-Use the [commit-changes skill](.agents/skills/commit-changes/SKILL.md) after a
-completed development checkpoint or when asked to review or finalize a
-repository change set. The workflow does not expand the task's authorized
-delivery scope.
+Use the [commit-changes skill](.agents/skills/commit-changes/SKILL.md) whenever a
+task changes repository files, before the final response, and when asked to
+finalize a repository change set. The workflow does not expand the task's
+authorized delivery scope.
 
 ## Execution rules
 
