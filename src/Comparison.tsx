@@ -28,12 +28,12 @@ export function Comparison({ state, entries, urls, m, select, assign, pin }: {
         const active = state.active === slot, pinned = state.pinned === slot;
         return <section key={slot} className={styles.comparisonSlot} data-slot={slot} data-active={active} data-pinned={pinned} aria-label={`${m.field} ${slot}`}>
           <div className={styles.slotHeader}>
-            <button className={styles.slotSelect} aria-pressed={active} aria-label={`${m.selectField} ${slot}`} onClick={() => select(slot)}>
-              <strong>{slot}</strong><span>{active ? m.activeField : m.selectField}</span>
+            <button className={styles.slotSelect} aria-pressed={active} aria-label={`${m.field} ${slot}`} onClick={() => select(slot)}>
+              {slot}
             </button>
             <button className={styles.pin} disabled={!entry && !pinned} aria-pressed={pinned} aria-label={`${pinned ? m.unpin : m.pin} ${slot}`} title={pinned ? m.unpin : m.pin} onClick={() => pin(slot)}><Icon name="pin" /></button>
           </div>
-          <button className={styles.comparisonImage} aria-label={`${m.selectField} ${slot}${assignment ? `: ${assignment.name}` : ''}`} onClick={() => select(slot)}>
+          <button className={styles.comparisonImage} aria-label={`${m.field} ${slot}${assignment ? `: ${assignment.name}` : ''}`} onClick={() => select(slot)}>
             {entry ? <OriginalImage key={entry.resourceKey} entry={entry} urls={urls} error={m.imageError} /> : <span role="status">{assignment ? m.pinnedUnavailable : m.comparisonEmpty}</span>}
           </button>
           <p className={styles.slotCaption}>{entry?.name ?? assignment?.name ?? m.emptyField}{pinned && <span> · {m.pinned}</span>}</p>
