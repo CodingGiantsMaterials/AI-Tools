@@ -119,14 +119,5 @@ survive reopening in the same browser profile/origin. Site data deletion, profil
 changes or storage loss have no recovery mechanism or backup here. Multiple-tab
 revision conflicts retain the local draft and report an error, without merging.
 
-## Validation and limits
-
-Run `npm test`, `npm run build`, and `npm run test:browser`. Unit tests exercise
-coalesced scans, folder generations, same-attribute replacements, ordering,
-untrusted metadata and actual IndexedDB transaction semantics. Production probe
-tests cover metadata/C2PA worker networking with CSP bypassed, worker cleanup,
-notes after reload, and 100 entries without image decoding. Native animation
-and unchanged-source lifecycle regressions remain in the foundation suite.
-Chromium, Firefox and WebKit automation do not establish real OS permission
-dialogs or Safari application behavior. The [gallery contract](gallery.md)
-describes original-image rendering, modal, notes integration and UI validation.
+The [gallery contract](gallery.md) describes original-image rendering, modal
+and notes integration.

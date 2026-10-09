@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   base: '/Web-Album/',
   plugins: [react(), basicSsl(), {
     name: 'development-csp',
@@ -12,8 +12,4 @@ export default defineConfig(({ mode }) => ({
       .replace("style-src 'self'", "style-src 'self' 'unsafe-inline'"),
   }],
   worker: { format: 'es' },
-  build: mode === 'discovery' ? {
-    outDir: '.discovery-build',
-    rolldownOptions: { input: { app: 'index.html', probe: 'tests/probe/index.html' } },
-  } : {},
-}));
+});

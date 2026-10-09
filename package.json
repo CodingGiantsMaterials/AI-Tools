@@ -10,10 +10,7 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview --host 127.0.0.1",
-    "test": "vitest run",
-    "build:discovery": "vite build --mode discovery",
-    "test:browser": "npm run build && npm run build:discovery && playwright test"
+    "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
     "@contentauth/c2pa-utilities": "0.3.1",
@@ -24,16 +21,12 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
-    "@contentauth/c2pa-web": "0.15.3",
-    "@playwright/test": "1.64.0",
     "@types/node": "24.19.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-basic-ssl": "2.3.0",
     "@vitejs/plugin-react": "6.1.2",
-    "fake-indexeddb": "6.2.5",
     "typescript": "7.0.2",
-    "vite": "8.3.3",
-    "vitest": "5.0.3"
+    "vite": "8.3.3"
   }
 }
