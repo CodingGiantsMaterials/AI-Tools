@@ -39,7 +39,7 @@ export function NotesEditor({ entry, notes, m }: { entry: CollectionEntry; notes
     <label htmlFor="photo-note">{m.notes}</label>
     <textarea id="photo-note" placeholder={m.notePlaceholder} value={matches ? state.text : ''} disabled={disabled}
       aria-describedby={status ? 'note-status note-local' : 'note-local'} onChange={(event) => notes.edit(event.target.value)} onBlur={() => { void notes.flush(); }} />
-    <p id="note-status" role="status" className={styles.noteStatus} hidden={!status}>{status}</p>
+    <p id="note-status" role="status" className={styles.noteStatus}>{status}</p>
     <p id="note-local" className={styles.hint}>{m.noteLocal}</p>
   </section>;
 }
@@ -56,28 +56,30 @@ export function Inspection({ entry, notes, m, language }: { entry: CollectionEnt
   ];
   const metadataNotice = data.status === 'ready' ? '' : data.status === 'error' ? m.metadataError : m.metadataUnsupported;
   const provenanceStatus = m[provenance?.status ?? 'pending'];
-  const provenanceRows: MetadataRow[] = provenance ? [
-    { label: m.claimGenerator, value: provenance.claimGenerator ?? '' },
-    { label: m.generator, value: provenance.generators.join('\n') },
-    { label: m.declarations, value: provenance.aiDeclarations.join('\n') },
-    { label: m.history, value: provenance.actions.join('\n') },
-    { label: m.ingredients, value: provenance.ingredients.join('\n') },
-  ].filter(({ value }) => value) : [];
+  const provenancePlaceholder = !provenance ? m.reading : provenance.status === 'none' ? m.notDetected
+    : provenance.status === 'detected' && provenance.completeness === 'complete' ? m.missing : m.unknown;
+  const provenanceRows: MetadataRow[] = [
+    { label: m.claimGenerator, value: provenance?.claimGenerator || provenancePlaceholder },
+    { label: m.generator, value: provenance?.generators.join('\n') || provenancePlaceholder },
+    { label: m.declarations, value: provenance?.aiDeclarations.join('\n') || provenancePlaceholder },
+    { label: m.history, value: provenance?.actions.join('\n') || provenancePlaceholder },
+    { label: m.ingredients, value: provenance?.ingredients.join('\n') || provenancePlaceholder },
+  ];
   const copyValue = [entry.name, rows.map(formatRow).join('\n'), metadataNotice,
     [`C2PA: ${provenanceStatus}`, ...provenanceRows.map(formatRow)].join('\n'), m.provenanceNote,
   ].filter(Boolean).join('\n\n');
   return <aside className={styles.inspection} aria-label={m.information}>
-    <div className={styles.filename}><h2>{entry.name}</h2><Copy value={copyValue} m={m} /></div>
-    <dl className={styles.metadata}>
+    <div className={styles.filename}><h2 key={entry.resourceKey}>{entry.name}</h2><Copy value={copyValue} m={m} /></div>
+    <dl key={entry.resourceKey} className={styles.metadata}>
       {rows.map((row) => <Row key={row.label} {...row} />)}
     </dl>
     {metadataNotice && <p role="status" className={styles.hint}>{metadataNotice}</p>}
     <details className={styles.details} open>
       <summary>C2PA <Icon name="down" /></summary>
       <p role="status" className={styles.provenanceStatus} data-status={provenance?.status ?? 'pending'}>{provenanceStatus}</p>
-      {provenanceRows.length > 0 && <dl className={styles.metadata}>
+      <dl key={entry.resourceKey} className={styles.metadata}>
         {provenanceRows.map((row) => <Row key={row.label} {...row} />)}
-      </dl>}
+      </dl>
       <p className={styles.hint}>{m.provenanceNote}</p>
     </details>
     <NotesEditor entry={entry} notes={notes} m={m} />

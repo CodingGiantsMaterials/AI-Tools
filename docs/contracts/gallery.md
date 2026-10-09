@@ -33,6 +33,8 @@ remain required, so this is not a hard browser-memory cap. Native animation
 buffers and browser caches are outside the application's resource accounting.
 Active selection scrolls only the strip. Every entry remains reachable by the
 strip controls, horizontal scrolling, thumbnail buttons and looping navigation.
+Short collections are centered horizontally; overflowing collections start at
+the first thumbnail and retain their full scroll range.
 
 The native modal opens only when an already-central image is activated. It makes
 the background inert, confines keyboard focus to its close control, closes on
@@ -42,11 +44,19 @@ the modal, with a fallback focus target if the opener no longer exists. Gallery
 shortcuts exclude editing, composition, selectors, modifier keys and open dialogs.
 
 `Inspection` shows resolution, format, file size and C2PA provenance as untrusted
-text. The C2PA section shows its status and available declarations; declaration
-tools and explicitly declared AI generators have distinct labels. A single copy
-button beside the filename copies the filename, displayed metadata values and
-C2PA status, declarations and caveat as labeled plain text in the current UI
-language. Multiline values are indented, and metadata read notices are included.
+text. The C2PA section always shows the same five declaration fields in the same
+order. Empty values distinguish a pending read, no detected C2PA, a field not
+recorded in a completed read, and an unknown value after an incomplete or failed
+read. Declaration tools and explicitly declared AI generators have distinct
+labels. Filenames and values have reserved line space and scroll when longer,
+returning to the beginning on photo changes. The note-status line also retains
+its space when empty to keep selection changes from shifting the panel.
+On desktop, the panel scrolls within the gallery workspace without increasing
+its height or pushing the thumbnail strip down. On mobile, the panel remains
+in the page flow below the thumbnails.
+A single copy button beside the filename copies the filename, full metadata
+values and C2PA status, declarations and caveat as labeled plain text in the
+current UI language. Multiline values are indented, and metadata read notices are included.
 Copy uses the clipboard API only in a button gesture and reports failure locally.
 `NotesEditor` subscribes separately, masks stale selections, disables editing
 until a draft is available and flushes on blur. The application also flushes on
