@@ -9,7 +9,8 @@ Polish, English, German and Spanish, with light and dark themes.
 
 ## Using the gallery
 
-Choose a local folder containing JPEG, PNG or WebP images. Only its direct files
+Click the welcome area to choose a local folder containing JPEG, PNG or WebP
+images. Use Change folder to select another folder. Only its direct files
 are read; subfolders are skipped. Where read-only directory access is available,
 Refresh scans for changes, and navigation checks the selected file again.
 Otherwise the browser imports a snapshot: choose the folder again to load changes.

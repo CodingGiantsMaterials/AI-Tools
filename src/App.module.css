@@ -81,7 +81,8 @@
 .modalHeader span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .modalHeader button { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; }
 .modalImage { position: relative; height: calc(100% - 48px); }
-.empty { flex: 1; min-height: 65vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px 20px; }
+.empty { position: relative; flex: 1; min-height: 65vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px 20px; }
+.emptyPicker { position: absolute; inset: 0; border: 0; background: transparent; }
 .emptyIcon { width: 70px; height: 70px; border: 1px solid var(--line); border-radius: 24px; color: var(--muted); display: grid; place-items: center; margin-bottom: 14px; }
 .emptyIcon svg { width: 28px; height: 28px; }
 .empty h2 { font-size: 25px; font-weight: 500; margin: 10px 0; }

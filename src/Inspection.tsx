@@ -45,23 +45,18 @@ export function Inspection({ entry, notes, m, language }: { entry: CollectionEnt
   const number = (value: number, digits = 1) => new Intl.NumberFormat(language, { maximumFractionDigits: digits }).format(value);
   const size = entry.file.size < 1_000_000 ? `${number(entry.file.size / 1000)} kB` : `${number(entry.file.size / 1_000_000)} MB`;
   const resolution = data.width && data.height ? `${data.width} × ${data.height}${data.megapixels !== null ? ` (${number(data.megapixels)} MP)` : ''}` : null;
-  const date = data.date;
-  const capture = date ? `${new Date(date.seconds * 1000).toISOString().slice(0, 19).replace('T', ' ')}${date.fraction ? `.${date.fraction}` : ''}${date.offset ? ' UTC' : ` · ${m.noZone}`}` : null;
   return <aside className={styles.inspection} aria-label={m.information}>
     <div className={styles.filename}><h2>{entry.name}</h2><Copy value={entry.name} m={m} /></div>
     <dl className={styles.metadata}>
       <Row label={m.resolution} value={resolution} m={m} />
       <Row label={m.format} value={entry.format === 'image/jpeg' ? 'JPEG' : entry.format === 'image/png' ? 'PNG' : 'WebP'} m={m} />
       <Row label={m.size} value={size} m={m} />
-      <Row label={m.date} value={capture ?? m.noDate} m={m} />
     </dl>
     {data.status !== 'ready' && <p role="status" className={styles.hint}>{data.status === 'error' ? m.metadataError : m.metadataUnsupported}</p>}
     <details className={styles.details} open>
       <summary>C2PA <Icon name="down" /></summary>
       <p role="status" className={styles.provenanceStatus} data-status={provenance?.status ?? 'pending'}>{m[provenance?.status ?? 'pending']}</p>
       {provenance && <dl className={styles.metadata}>
-        <Row label={m.detection} value={m[provenance.detection]} m={m} />
-        <Row label={m.completeness} value={m[provenance.completeness]} m={m} />
         {provenance.claimGenerator && <Row label={m.claimGenerator} value={provenance.claimGenerator} m={m} />}
         <Values label={m.generator} values={provenance.generators} m={m} />
         <Values label={m.declarations} values={provenance.aiDeclarations} m={m} />
@@ -69,20 +64,6 @@ export function Inspection({ entry, notes, m, language }: { entry: CollectionEnt
         <Values label={m.ingredients} values={provenance.ingredients} m={m} />
       </dl>}
       <p className={styles.hint}>{m.provenanceNote}</p>
-    </details>
-    <details className={styles.details}>
-      <summary>{m.metadata}<Icon name="down" /></summary>
-      <dl className={styles.metadata}>
-        <Row label={m.profile} value={data.colorProfile} m={m} />
-        <Row label={m.colorSpace} value={data.colorSpace} m={m} />
-        {data.orientation !== null && <Row label={m.orientation} value={String(data.orientation)} m={m} />}
-        {date && <Row label={m.dateSource} value={date.source.toUpperCase()} m={m} />}
-        <Values label={m.software} values={data.software} m={m} />
-        <Values label={m.generator} values={data.generators} m={m} />
-        <Values label={m.declarations} values={data.aiDeclarations} m={m} />
-        <Values label={m.history} values={data.recordedHistory} m={m} />
-      </dl>
-      <p className={styles.hint}>{m.colorNote}</p>
     </details>
     <NotesEditor entry={entry} notes={notes} m={m} />
   </aside>;
