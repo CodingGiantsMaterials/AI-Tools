@@ -11,7 +11,7 @@ export interface FolderSource {
   list(): Promise<FolderEntry[]>;
 }
 
-// A deliberately read-only subset, also usable with a test directory handle.
+// A deliberately read-only subset.
 export interface ReadOnlyFileHandle { kind: 'file'; name: string; getFile(): Promise<File> }
 export interface ReadOnlyDirectoryHandle {
   kind: 'directory';

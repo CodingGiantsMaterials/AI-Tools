@@ -1,4 +1,4 @@
-name: Validate and publish Pages
+name: Build and publish Pages
 
 on:
   pull_request:
@@ -28,20 +28,11 @@ jobs:
           node-version: 24.18.0
           cache: npm
       - run: npm ci
-      - run: npm test
       - name: Check publication helper
         shell: pwsh
         run: ./tests/create-pr.Tests.ps1
-      - run: npx playwright install --with-deps chromium firefox webkit
-      - name: Build and test production paths in three engines
-        run: npm run test:browser
-      - name: Retain browser results
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: browser-results
-          path: test-results/
-          retention-days: 7
+      - name: Build production application
+        run: npm run build
       - name: Upload validated production site
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

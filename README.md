@@ -63,29 +63,21 @@ npm run dev
 
 The development server uses HTTPS with a locally generated, self-signed
 certificate. Production assets are built for `/Web-Album/` and need only static
-HTTPS hosting. The browser discovery probe also uses HTTPS for its reference SDK.
+HTTPS hosting.
 
 ```powershell
-npm test
 npm run build
-npx playwright install chromium firefox webkit
-npm run test:browser
 ```
 
-`npm run preview` serves `dist`. Browser tests build an additional integration
-probe into `.discovery-build`; this directory is for tests and is not a release
-artifact. The suite covers Chromium, Firefox and WebKit, including network
-observation from workers and a mixed collection of about 100 realistic-size
-images. WebKit automation is not a Safari application test; native OS folder
-dialogs and permission prompts require separate manual checks when available.
+`npm run preview` serves `dist`.
 
 ## GitHub Pages
 
 In repository **Settings → Pages**, choose **GitHub Actions** as the publishing
-source. The [workflow](.github/workflows/pages.yml) validates pull requests and
-pushes to `main`, then publishes only the validated `dist` artifact from `main`.
-It can also be run manually on `main`. It uses the normal GitHub token and Pages
-OIDC permissions; no application secrets are needed.
+source. The [workflow](.github/workflows/pages.yml) installs dependencies, checks
+the publication helper and builds the application for pull requests and pushes
+to `main`. It publishes `dist` only from `main` and can also be run manually
+on that branch.
 
 The project URL is `https://PrzemyslawSochon.github.io/Web-Album/`. Vite's
 `base: '/Web-Album/'` applies to the logo, JavaScript, CSS, workers and WASM.

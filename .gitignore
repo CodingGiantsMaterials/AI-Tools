@@ -1,6 +1,3 @@
 node_modules/
 dist/
-.discovery-build/
-test-results/
-playwright-report/
 *.tsbuildinfo

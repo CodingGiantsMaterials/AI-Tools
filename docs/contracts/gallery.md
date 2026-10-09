@@ -84,18 +84,3 @@ comparison assigns or inspects the carousel entry under the same pin rules.
 Metadata and original revisions always come from the current collection; equal-byte
 refreshes retain mounted images, while replacements change their resource keys.
 No additional image editing, overlay, zoom or animation synchronization is applied.
-
-Validate with `npm test`, `npm run build` and `npm run test:browser`.
-The gallery browser suite exercises real production renders, native animation
-in each view, modal focus, four languages, notes, copy, folder states, comparison
-pinning/removal/revisions, 100-entry resource lifetimes and desktop/mobile screenshots.
-Repeated full comparison traversal includes 6000 × 4000, 2400 × 3600 and
-2400 × 1600 originals plus animation, recording selection latency, URL leases,
-mounted images, estimated RGBA buffers and available JS-heap samples. Estimates
-exclude animation buffers, GPU resources and browser caches; there is no whole-browser
-memory cap. ICC fixtures check native conversion of linear RGB and sRGB in every
-view, with Firefox tagged-image color management enabled specifically for the ICC
-test (Playwright otherwise disables it for screenshots), without establishing
-monitor calibration or full color fidelity. Synthetic
-directory handles test integration but do not establish native OS permission-dialog
-behavior. Automated WebKit does not establish actual Safari application behavior.

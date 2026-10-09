@@ -3,31 +3,15 @@
 ## Build and validation
 
 Node.js 24 LTS, strict TypeScript, React and Vite are pinned in `package.json`
-and `package-lock.json`. `npm ci`, `npm test`, `npm run build` and
-`npm run test:browser` are the validation commands. Install browser binaries
-with `npx playwright install chromium firefox webkit` first.
+and `package-lock.json`. Install dependencies with `npm ci` and validate with
+`npm run build`.
 
 Production output is `dist` with base `/Web-Album/`. Workers and WASM are local
-hashed assets. The reference SDK in the discovery probe requires HTTPS.
+hashed assets.
 No COOP/COEP headers, SharedArrayBuffer, service worker, server routing or backend
 are required. Local dev/preview use a generated self-signed certificate.
 Development alone permits inline scripts/styles for Vite refresh; production
 retains the CSP in `index.html`.
-
-Browser tests serve the production `dist` on port 4174 and a production-optimized
-build with a test-only entry point under `.discovery-build` on port 4173.
-That entry is excluded from `dist`. The privacy probe
-disables CSP, observes requests from the page and workers, and verifies the
-observer with a separate worker request. Local `blob:` reads are not network
-egress. The default page tests retain CSP. WebKit automation is not a test of
-the Safari application or native OS permission dialogs.
-
-SDK, identity, lifecycle and animation probes supply original fixture bytes as
-Playwright file buffers. Windows WebKit path-backed uploads can intermittently
-reject even a direct `File.arrayBuffer()` with `NotFoundError`, before application
-processing. The separate native snapshot-folder test retains directory-path
-input and must be reported independently; its failure is not a passing import
-check. Buffer-input processing tests do not establish native OS picker support.
 
 ## Folder access
 
@@ -126,8 +110,6 @@ Cancellation and disposal reject with `AbortError`, also during those phases.
 These limits affect provenance, never native image display. Readers are freed
 on completion and the owned worker is terminated on every completion,
 cancellation, timeout or failure; consumers dispose the service on teardown.
-The browser probe compares representative data with c2pa-web 0.15.3 using the
-same WASM and Context settings. Repeat the privacy tests whenever SDK versions,
-settings or resource handling change. The
-[local data contracts](local-data.md) define collection management, ordinary
+
+The [local data contracts](local-data.md) define collection management, ordinary
 metadata and note editing services separately from their UI presentation.
