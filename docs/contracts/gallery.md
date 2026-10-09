@@ -1,11 +1,14 @@
 # Gallery interface
 
 `App` owns one `CollectionController`, `NotesController` and shared
-`OriginalUrls` cache. Folder selection stays in the initiating gesture.
+`OriginalUrls` cache. The entire welcome area opens folder selection through a
+keyboard-accessible button. After selecting a folder, the separate Change folder
+control remains available. Folder selection stays in the initiating gesture.
 An input `change` with an empty `FileList` selects an empty snapshot; a `cancel`
 event preserves the collection. If the browser sends no selection event for an
 empty folder, the application cannot distinguish it from cancellation.
-The gallery consumes the [collection and notes contracts](local-data.md) and
+Unsupported files are skipped without a collection notice. The gallery consumes
+the [collection and notes contracts](local-data.md) and
 does not reorder entries or use content identity as gallery identity.
 
 `Gallery` receives `entries`, `activeId`, `activate(entryId)`, `urls` and a typed
@@ -38,9 +41,9 @@ replacement updates the modal to the current revision; removing its entry closes
 the modal, with a fallback focus target if the opener no longer exists. Gallery
 shortcuts exclude editing, composition, selectors, modifier keys and open dialogs.
 
-`Inspection` shows normalized metadata/provenance as untrusted text. C2PA status,
-detection and completeness are separate; declaration tools, recorded software
-and explicitly declared AI generators have distinct labels. Copy uses the
+`Inspection` shows resolution, format, file size and C2PA provenance as untrusted
+text. The C2PA section shows its status and available declarations; declaration
+tools and explicitly declared AI generators have distinct labels. Copy uses the
 clipboard API only in a button gesture and reports failure locally.
 `NotesEditor` subscribes separately, masks stale selections, disables editing
 until a draft is available and flushes on blur. The application also flushes on

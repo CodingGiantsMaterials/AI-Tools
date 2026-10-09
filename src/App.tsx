@@ -85,19 +85,19 @@ export function App() {
         </div>
       </div>
     </header>
-    <div className={styles.controls}>
-      <button data-folder-control onClick={() => void choose()}><Icon name="folder" />{state.status === 'no-folder' ? m.choose : m.change}</button>
+    {state.status !== 'no-folder' && <div className={styles.controls}>
+      <button data-folder-control onClick={() => void choose()}><Icon name="folder" />{m.change}</button>
       {state.canRefresh && <button disabled={state.scanning} onClick={() => { setPickerError(null); void controller.refresh(); }}><Icon name="refresh" />{m.refresh}</button>}
-      <input ref={input} type="file" multiple {...{ webkitdirectory: '' }} hidden aria-label={m.choose}
-        onChange={(event) => { if (event.target.files) { setPickerError(null); void controller.setSource(snapshotSource(Array.from(event.target.files))); } event.target.value = ''; }} />
       {state.notice === 'reselect' && <p className={styles.hint}>{m.snapshot}</p>}
       {state.scanning && active && <span role="status" className={styles.hint}>{m.scanning}</span>}
-    </div>
+    </div>}
+    <input ref={input} type="file" multiple {...{ webkitdirectory: '' }} hidden aria-label={m.choose}
+      onChange={(event) => { if (event.target.files) { setPickerError(null); void controller.setSource(snapshotSource(Array.from(event.target.files))); } event.target.value = ''; }} />
     {active || mode === 'comparison' && state.folderGeneration > 0 ? <>
       <div className={styles.workspace}>
         <div className={styles.galleryArea}>
           <div className={styles.collectionStatus} role="status">{status}
-            {[...new Set(state.issues.map((issue) => issue.code))].map((code) => <p key={code}>{code === 'unavailable' ? m.unavailable : code === 'unsupported' ? m.unsupportedFiles : m.deniedFiles}</p>)}
+            {[...new Set(state.issues.map((issue) => issue.code))].filter((code) => code !== 'unsupported').map((code) => <p key={code}>{code === 'unavailable' ? m.unavailable : m.deniedFiles}</p>)}
           </div>
           {mode === 'carousel' ? <Gallery key={state.folderGeneration} entries={state.entries} activeId={activeId} activate={activate} urls={urls} m={m} />
             : <Comparison state={comparison} entries={state.entries} urls={urls} m={m} select={selectSlot} assign={activate} pin={(slot) => setComparison(pinComparison(comparison, slot))} />}
@@ -112,6 +112,7 @@ export function App() {
       <h2 role="status">{status || m.intro}</h2>
       {!status && <p>{m.introDetail}</p>}
       <span className={styles.hint}>{m.formats}</span>
+      {state.status === 'no-folder' && <button className={styles.emptyPicker} data-folder-control aria-label={m.choose} onClick={() => void choose()} />}
     </section>}
   </main>;
 }
