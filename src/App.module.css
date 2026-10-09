@@ -45,11 +45,11 @@
 .imageError { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: var(--soft); border-radius: 5px; font: 12px/1.5 system-ui, sans-serif; overflow-wrap: anywhere; }
 .inspection { border-left: 1px solid var(--line); padding: 0 0 12px 25px; min-width: 0; font: 12px/1.65 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; }
 .filename { display: flex; align-items: start; gap: 8px; margin-bottom: 12px; }
-.filename h2 { font: 600 19px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 0; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.filename h2 { font: 600 19px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 0; flex: 1; min-width: 0; height: 2.8em; overflow-wrap: anywhere; overflow-y: auto; scrollbar-width: thin; }
 .metadata { margin: 0; }
-.row { display: grid; grid-template-columns: 42% minmax(0, 1fr); gap: 10px; margin: 5px 0; }
+.row { display: grid; grid-template-columns: 42% minmax(0, 1fr); gap: 10px; margin: 5px 0; min-height: 3.3em; }
 .row dt { color: var(--muted); font-family: system-ui, sans-serif; }
-.row dd { min-width: 0; margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.row dd { min-width: 0; margin: 0; max-height: 3.3em; overflow-y: auto; overflow-wrap: anywhere; white-space: pre-wrap; scrollbar-width: thin; }
 .copy { border: 0; background: transparent; padding: 2px; width: 22px; height: 25px; flex-shrink: 0; display: grid; place-items: center; color: var(--muted); opacity: .6; }
 .copy svg { width: 15px; height: 15px; }
 .copy:hover, .copy:focus-visible { opacity: 1; }
@@ -70,6 +70,8 @@
 .thumbnails { display: flex; align-items: center; gap: 12px; padding: 24px 0 0; min-width: 0; }
 .strip { position: relative; display: flex; flex: 1; min-width: 0; gap: 10px; overflow-x: auto; padding: 7px 4px 10px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; overscroll-behavior-x: contain; }
 .thumbnail { flex: 0 0 106px; height: 77px; padding: 2px; border: 2px solid transparent; position: relative; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; background: var(--soft); border-radius: 6px; }
+.thumbnail:first-child { margin-inline-start: auto; }
+.thumbnail:last-child { margin-inline-end: auto; }
 .thumbnail[aria-current="true"] { border-color: var(--accent); outline: 1px solid var(--accent); outline-offset: 1px; }
 .thumbnail img { border-radius: 3px; }
 .thumbnail .imageError { font-size: 9px; padding: 3px; }
@@ -103,6 +105,7 @@
 .comparisonNavigation span { font-size: 12px; color: var(--muted); }
 .preparedImages { display: none; }
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; padding: 0; margin: -1px; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (min-width: 761px) { .inspection { contain: size; overflow-y: auto; scrollbar-gutter: stable; } }
 @media (min-width: 1500px) { .workspace { grid-template-columns: minmax(0, 1fr) 390px; } .inspection { font-size: 13px; padding-left: 30px; } .filename h2 { font-size: 23px; } .app { padding: 24px 46px 26px; } .header { margin-bottom: 20px; } }
 @media (max-width: 1050px) { .app { padding: 16px 20px; } .workspace { grid-template-columns: minmax(0, 1fr) 310px; } .inspection { padding-left: 18px; } .preferences { gap: 10px; } .modes button { min-width: 110px; padding: 9px 16px; } .carousel { min-height: 400px; } }
 @media (max-width: 760px) {
