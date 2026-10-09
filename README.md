@@ -73,11 +73,17 @@ npm run build
 
 ## GitHub Pages
 
+In repository **Settings → Pages**, choose **GitHub Actions** as the publishing
+source. The [workflow](.github/workflows/pages.yml) installs dependencies, checks
+the publication helper and builds the application for pull requests and pushes
+to `main`. It publishes `dist` only from `main` and can also be run manually
+on that branch.
+
 The project URL is `https://PrzemyslawSochon.github.io/Web-Album/`. Vite's
 `base: '/Web-Album/'` applies to the logo, JavaScript, CSS, workers and WASM.
 Changing the repository path requires updating that base before building.
 The deployment needs no server routes, cross-origin isolation or custom headers;
-the production HTML includes a CSP. Verify published asset
+the production HTML includes a CSP. Verify the Actions run and published asset
 requests after deployment before treating the hosted release as accepted.
 
 See the [foundation contracts](docs/contracts/foundation.md) and
