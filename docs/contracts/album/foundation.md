@@ -1,21 +1,16 @@
 # Foundation contracts
 
-## Build and validation
+## Build
 
-Node.js 24 LTS, strict TypeScript, React and Vite are pinned in `package.json`
-and `package-lock.json`. Install dependencies with `npm ci` and validate with
-`npm run build`.
-
-Production output is `dist` with base `/AI-Tools/`. Workers and WASM are local
-hashed assets.
+The [shared build contract](../shared.md#build) defines the toolchain, commands
+and output layout. Album production output is `dist/Album` with base
+`/AI-Tools/Album/`. Workers and WASM are local hashed assets.
 No COOP/COEP headers, SharedArrayBuffer, service worker, server routing or backend
-are required. Local dev/preview use a generated self-signed certificate.
-Development alone permits inline scripts/styles for Vite refresh; production
-retains the CSP in `index.html`.
+are required. Production retains the CSP in `apps/album/index.html`.
 
 ## Folder access
 
-`src/files/folder-source.ts` exports `FolderSource`, `FolderEntry`,
+`apps/album/src/files/folder-source.ts` exports `FolderSource`, `FolderEntry`,
 `pickDirectory`, `directorySource`, `snapshotSource` and feature detection.
 Picker calls use `mode: 'read'` and must occur directly in a user gesture.
 Scanning only queries permission and never requests or escalates it.

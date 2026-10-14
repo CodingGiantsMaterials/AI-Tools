@@ -84,7 +84,7 @@ No manifest icons, thumbnails or linked resources are resolved.
 
 ## Notes
 
-`NotesRepository` owns IndexedDB `web-album-local-notes`, schema version 1,
+`NotesRepository` owns IndexedDB `ai-tools-album`, schema version 1,
 store `notes` keyed by full-byte SHA-256 `contentId`. Records contain `text`,
 `updatedAt` and positive integer `revision`. `get()` returns a note or null;
 `save(note, expectedRevision)` compares the stored revision inside its write
@@ -93,7 +93,7 @@ by that draft (zero means no record). The new note revision must exceed that
 base. A mismatch rejects the write, regardless of the number of local edits.
 Saving resolves only on transaction completion. `close()` closes the connection.
 The database name identifies the application, not an isolation boundary from
-other same-origin applications.
+other [same-origin applications](../shared.md#shared-origin).
 
 `NotesController` exposes `select(contentId | null)`, `edit(text)`, `flush()`,
 `flushAll()`, `getSnapshot()`, `subscribe()` and asynchronous `dispose()`.

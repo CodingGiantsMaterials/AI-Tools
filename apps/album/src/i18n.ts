@@ -58,8 +58,8 @@ const es: Messages = {
 };
 export const messages: Record<Language, Messages> = { pl, en, de, es };
 export function storedPreference(key: string): string | null {
-  try { return localStorage.getItem(`web-album-${key}`); } catch { return null; }
+  try { return localStorage.getItem(`ai-tools-album-${key}`); } catch { return null; }
 }
 export function savePreference(key: string, value: string): void {
-  try { localStorage.setItem(`web-album-${key}`, value); } catch { /* Preferences remain usable in memory. */ }
+  try { localStorage.setItem(`ai-tools-album-${key}`, value); } catch { /* Preferences remain usable in memory. */ }
 }

@@ -63,11 +63,11 @@ until a draft is available and flushes on blur. The application also flushes on
 visibility loss and pagehide; these final transactions remain best effort.
 
 `i18n.ts` provides the complete typed PL/EN/DE/ES dictionaries. Persisted
-preferences use `web-album-language` and `web-album-theme` in localStorage;
+preferences use `ai-tools-album-language` and `ai-tools-album-theme` in localStorage;
 unavailable storage falls back to in-memory preferences. The default theme is
 light. Original metadata values and product names are never translated.
 
-The provided logo is bundled unchanged at `src/assets/coding-giants-small-logo.png`.
+The provided logo is bundled unchanged at `apps/album/src/assets/coding-giants-small-logo.png`.
 
 ## Comparison
 

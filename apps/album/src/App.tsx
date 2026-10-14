@@ -70,7 +70,7 @@ export function App() {
   };
   return <main className={styles.app}>
     <header className={styles.header}>
-      <div className={styles.brand}><img src={logo} alt="Coding Giants" width="76" height="76" /><h1 className={styles.srOnly}>Web Album</h1></div>
+      <div className={styles.brand}><img src={logo} alt="Coding Giants" width="76" height="76" /><h1 className={styles.srOnly}>Album</h1></div>
       <div className={styles.modes} role="group" aria-label={m.view}>
         <button aria-pressed={mode === 'carousel'} onClick={() => changeMode('carousel')}>{m.carousel}</button><button aria-pressed={mode === 'comparison'} onClick={() => changeMode('comparison')}>{m.comparison}</button>
       </div>

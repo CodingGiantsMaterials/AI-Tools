@@ -9,7 +9,7 @@ export interface NotesStore {
   save(note: Note, expectedRevision: number): Promise<void>;
   close(): Promise<void>;
 }
-export const notesDatabase = { name: 'web-album-local-notes', version: 1, store: 'notes' } as const;
+export const notesDatabase = { name: 'ai-tools-album', version: 1, store: 'notes' } as const;
 export function validContentId(value: string): boolean { return /^[a-f0-9]{64}$/.test(value); }
 function validNote(value: unknown): value is Note {
   const note = value as Note | null;
