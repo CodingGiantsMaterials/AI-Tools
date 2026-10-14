@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
-  base: '/Web-Album/',
+  base: '/AI-Tools/',
   plugins: [react(), basicSsl(), {
     name: 'development-csp',
     apply: 'serve',

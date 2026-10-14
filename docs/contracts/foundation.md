@@ -6,7 +6,7 @@ Node.js 24 LTS, strict TypeScript, React and Vite are pinned in `package.json`
 and `package-lock.json`. Install dependencies with `npm ci` and validate with
 `npm run build`.
 
-Production output is `dist` with base `/Web-Album/`. Workers and WASM are local
+Production output is `dist` with base `/AI-Tools/`. Workers and WASM are local
 hashed assets.
 No COOP/COEP headers, SharedArrayBuffer, service worker, server routing or backend
 are required. Local dev/preview use a generated self-signed certificate.
