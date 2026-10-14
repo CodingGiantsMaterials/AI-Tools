@@ -35,7 +35,7 @@ filename. Service callbacks check generation, entry, revision, request and abort
 
 `resourceKey` changes only when the original revision changes or equality cannot
 be established. Equal hashes preserve the previous original `File` and resource
-key across scans. Use this key for React identity and `OriginalUrls` leases.
+key across scans. Use this key for React identity and `ObjectUrls` leases.
 Acquire leases outside render, keep mounted originals through unchanged refresh,
 and release on revision change/unmount. The controller creates no URLs and decodes
 no full-resolution image. The UI must bound mounted images and prepare neighbors;
@@ -92,6 +92,8 @@ transaction with the revision originally loaded or last successfully committed
 by that draft (zero means no record). The new note revision must exceed that
 base. A mismatch rejects the write, regardless of the number of local edits.
 Saving resolves only on transaction completion. `close()` closes the connection.
+The connection comes from the [shared](../shared.md#shared-package)
+`openDatabase`; any opening failure rejects with `NotesUnavailable`.
 The database name identifies the application, not an isolation boundary from
 other [same-origin applications](../shared.md#shared-origin).
 

@@ -1,8 +1,8 @@
 import { memo, useEffect, useRef, useState } from 'react';
+import { Icon } from '@ai-tools/shared/icon';
+import type { ObjectUrls } from '@ai-tools/shared/object-urls';
 import type { CollectionEntry } from './collection/collection-controller';
-import type { OriginalUrls } from './images/original';
 import type { Messages } from './i18n';
-import { Icon } from './Icon';
 import styles from './App.module.css';
 
 export function carouselOffset(index: number, active: number, length: number): number {
@@ -11,7 +11,7 @@ export function carouselOffset(index: number, active: number, length: number): n
 }
 
 /** Native originals stay mounted while the same revision moves between positions. */
-export const OriginalImage = memo(function OriginalImage({ entry, urls, error }: { entry: CollectionEntry; urls: OriginalUrls; error: string }) {
+export const OriginalImage = memo(function OriginalImage({ entry, urls, error }: { entry: CollectionEntry; urls: ObjectUrls; error: string }) {
   const [url, setUrl] = useState<string>();
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -23,7 +23,7 @@ export const OriginalImage = memo(function OriginalImage({ entry, urls, error }:
     {failed && <span className={styles.imageError}>{error}</span>}</>;
 });
 
-function PreviewDialog({ entry, urls, m, onClose, opener }: { entry: CollectionEntry; urls: OriginalUrls; m: Messages; onClose: () => void; opener: HTMLElement }) {
+function PreviewDialog({ entry, urls, m, onClose, opener }: { entry: CollectionEntry; urls: ObjectUrls; m: Messages; onClose: () => void; opener: HTMLElement }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -56,7 +56,7 @@ export function useGalleryKeyboard(move: (direction: number) => void, blocked = 
   });
 }
 
-interface GalleryProps { entries: readonly CollectionEntry[]; activeId: string | null; activate: (entryId: string) => void; urls: OriginalUrls; m: Messages }
+interface GalleryProps { entries: readonly CollectionEntry[]; activeId: string | null; activate: (entryId: string) => void; urls: ObjectUrls; m: Messages }
 export function Gallery({ entries, activeId, activate, urls, m }: GalleryProps) {
   const activeIndex = entries.findIndex((entry) => entry.entryId === activeId);
   const [modal, setModal] = useState<{ entryId: string; opener: HTMLElement } | null>(null);

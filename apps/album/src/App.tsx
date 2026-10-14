@@ -1,28 +1,32 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Header, useDocumentPreferences, type Theme } from '@ai-tools/shared/header';
+import { isLanguage, type Language } from '@ai-tools/shared/i18n';
+import { Icon } from '@ai-tools/shared/icon';
+import { ObjectUrls } from '@ai-tools/shared/object-urls';
+import { savePreference, storedPreference } from '@ai-tools/shared/preferences';
 import { pickDirectory, snapshotSource, supportsDirectoryPicker } from './files/folder-source';
-import { OriginalUrls } from './images/original';
 import { CollectionController } from './collection/collection-controller';
 import { NotesController } from './notes/notes-controller';
 import { Gallery, ThumbnailStrip } from './Gallery';
 import { Comparison } from './Comparison';
 import { assignComparison, createComparison, pinComparison, reconcileComparison, type Slot } from './comparison-state';
 import { Inspection } from './Inspection';
-import { Icon } from './Icon';
-import { languages, messages, savePreference, storedPreference, type Language } from './i18n';
-import logo from './assets/coding-giants-small-logo.png';
+import { messages } from './i18n';
 import styles from './App.module.css';
+
+const preferencePrefix = 'ai-tools-album';
 
 export function App() {
   const [controller] = useState(() => new CollectionController());
-  const [urls] = useState(() => new OriginalUrls());
+  const [urls] = useState(() => new ObjectUrls());
   const [notes] = useState(() => new NotesController());
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   const [mode, setMode] = useState<'carousel' | 'comparison'>('carousel');
   const [storedComparison, setComparison] = useState(() => createComparison(state.folderGeneration, state.entries, state.activeId));
   const comparison = reconcileComparison(storedComparison, state.folderGeneration, state.entries, state.activeId);
   if (comparison !== storedComparison) setComparison(comparison);
-  const [language, setLanguage] = useState<Language>(() => { const saved = storedPreference('language'); return languages.includes(saved as Language) ? saved as Language : 'pl'; });
-  const [theme, setTheme] = useState(() => storedPreference('theme') === 'dark' ? 'dark' : 'light');
+  const [language, setLanguage] = useState<Language>(() => { const saved = storedPreference(preferencePrefix, 'language'); return isLanguage(saved) ? saved : 'pl'; });
+  const [theme, setTheme] = useState<Theme>(() => storedPreference(preferencePrefix, 'theme') === 'dark' ? 'dark' : 'light');
   const [pickerError, setPickerError] = useState<'denied' | 'folderError' | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const m = messages[language];
@@ -31,8 +35,9 @@ export function App() {
   useEffect(() => {
     if (mode === 'comparison' && active && state.activeId !== active.entryId) void controller.activate(active.entryId);
   }, [mode, active, state.activeId, controller]);
-  useEffect(() => { document.documentElement.lang = language; savePreference('language', language); }, [language]);
-  useEffect(() => { document.documentElement.dataset.theme = theme; savePreference('theme', theme); }, [theme]);
+  useDocumentPreferences(language, theme);
+  useEffect(() => { savePreference(preferencePrefix, 'language', language); }, [language]);
+  useEffect(() => { savePreference(preferencePrefix, 'theme', theme); }, [theme]);
   useEffect(() => {
     const flush = () => { void notes.flushAll(); };
     const visibility = () => { if (document.visibilityState === 'hidden') flush(); };
@@ -69,22 +74,11 @@ export function App() {
     if (id) void controller.activate(id);
   };
   return <main className={styles.app}>
-    <header className={styles.header}>
-      <div className={styles.brand}><img src={logo} alt="Coding Giants" width="76" height="76" /><h1 className={styles.srOnly}>Album</h1></div>
+    <Header className={styles.header} title="Album" language={language} theme={theme} labels={m} onLanguageChange={setLanguage} onThemeChange={setTheme}>
       <div className={styles.modes} role="group" aria-label={m.view}>
         <button aria-pressed={mode === 'carousel'} onClick={() => changeMode('carousel')}>{m.carousel}</button><button aria-pressed={mode === 'comparison'} onClick={() => changeMode('comparison')}>{m.comparison}</button>
       </div>
-      <div className={styles.preferences} data-shortcuts="off">
-        <select aria-label={m.language} value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
-          <option value="pl" lang="pl" label="PL">Polski</option><option value="en" lang="en" label="EN">English</option>
-          <option value="de" lang="de" label="DE">Deutsch</option><option value="es" lang="es" label="ES">Español</option>
-        </select>
-        <div className={styles.theme} role="group" aria-label={m.theme}>
-          <button aria-label={m.light} title={m.light} aria-pressed={theme === 'light'} onClick={() => setTheme('light')}><Icon name="sun" /></button>
-          <button aria-label={m.dark} title={m.dark} aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}><Icon name="moon" /></button>
-        </div>
-      </div>
-    </header>
+    </Header>
     {state.status !== 'no-folder' && <div className={styles.controls}>
       <button data-folder-control onClick={() => void choose()}><Icon name="folder" />{m.change}</button>
       {state.canRefresh && <button disabled={state.scanning} onClick={() => { setPickerError(null); void controller.refresh(); }}><Icon name="refresh" />{m.refresh}</button>}

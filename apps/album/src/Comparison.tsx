@@ -1,13 +1,13 @@
+import { Icon } from '@ai-tools/shared/icon';
+import type { ObjectUrls } from '@ai-tools/shared/object-urls';
 import type { CollectionEntry } from './collection/collection-controller';
-import type { OriginalUrls } from './images/original';
 import type { Messages } from './i18n';
 import { comparisonChoices, editableSlot, type ComparisonState, type Slot } from './comparison-state';
 import { OriginalImage, useGalleryKeyboard } from './Gallery';
-import { Icon } from './Icon';
 import styles from './App.module.css';
 
 export function Comparison({ state, entries, urls, m, select, assign, pin }: {
-  state: ComparisonState; entries: readonly CollectionEntry[]; urls: OriginalUrls; m: Messages;
+  state: ComparisonState; entries: readonly CollectionEntry[]; urls: ObjectUrls; m: Messages;
   select: (slot: Slot) => void; assign: (entryId: string) => void; pin: (slot: Slot) => void;
 }) {
   const choices = comparisonChoices(state, entries);

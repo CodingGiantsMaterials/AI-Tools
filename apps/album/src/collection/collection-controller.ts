@@ -1,7 +1,7 @@
 import { sameWork, type WorkKey, type WorkResult } from '../core/work';
 import type { FolderSource } from '../files/folder-source';
 import { IdentityService } from '../identity/identity-service';
-import { imageFormat, type ImageFormat } from '../images/original';
+import { imageFormat, type ImageFormat } from '@ai-tools/shared/image-format';
 import { compareEntries } from '../metadata/date';
 import { emptyMetadata, type Metadata } from '../metadata/metadata';
 import { MetadataService } from '../metadata/metadata-service';

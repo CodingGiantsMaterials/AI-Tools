@@ -1,3 +1,5 @@
+import { openDatabase } from '@ai-tools/shared/indexed-db';
+
 export interface Note {
   contentId: string;
   text: string;
@@ -27,23 +29,16 @@ export class NotesRepository implements NotesStore {
   private open(): Promise<IDBDatabase> {
     if (this.closed) return Promise.reject(new Error('NotesClosed'));
     if (this.connection) return this.connection;
-    this.connection = new Promise<IDBDatabase>((resolve, reject) => {
-      const request = this.factory.open(this.name, notesDatabase.version);
-      let finished = false;
-      const fail = () => { if (!finished) { finished = true; clearTimeout(timer); reject(new Error('NotesUnavailable')); } };
-      const timer = setTimeout(fail, 8000);
-      request.onblocked = request.onerror = fail;
-      request.onupgradeneeded = () => {
-        if (!request.result.objectStoreNames.contains(notesDatabase.store)) request.result.createObjectStore(notesDatabase.store, { keyPath: 'contentId' });
-      };
-      request.onsuccess = () => {
-        if (finished || this.closed) { request.result.close(); fail(); return; }
-        finished = true; clearTimeout(timer);
-        const db = request.result;
-        db.onversionchange = () => { db.close(); this.connection = null; };
-        resolve(db);
-      };
-    }).catch((error: unknown) => { this.connection = null; throw error; });
+    this.connection = openDatabase(this.name, notesDatabase.version, {
+      factory: this.factory,
+      upgrade: (db) => {
+        if (!db.objectStoreNames.contains(notesDatabase.store)) db.createObjectStore(notesDatabase.store, { keyPath: 'contentId' });
+      },
+      onVersionChange: () => { this.connection = null; },
+    }).then((db) => {
+      if (this.closed) { db.close(); throw new Error('NotesUnavailable'); }
+      return db;
+    }).catch(() => { this.connection = null; throw new Error('NotesUnavailable'); });
     return this.connection;
   }
 

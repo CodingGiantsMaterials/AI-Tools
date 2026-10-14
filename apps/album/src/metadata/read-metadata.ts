@@ -1,6 +1,6 @@
 import ExifReader from 'exifreader';
 import { DOMParser, onErrorStopParsing } from '@xmldom/xmldom';
-import { imageFormat, type ImageFormat } from '../images/original';
+import { imageFormat, type ImageFormat } from '@ai-tools/shared/image-format';
 import { emptyMetadata, normalizeMetadata, type Metadata } from './metadata';
 
 export const metadataLimits = { file: 64 * 1024 * 1024, block: 2 * 1024 * 1024, total: 8 * 1024 * 1024, blocks: 128 };

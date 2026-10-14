@@ -47,12 +47,13 @@ provide production persistence and autosave using this identity.
 
 ## Original image resources
 
-`imageFormat` checks JPEG, PNG and WebP signatures independently of names or MIME
-labels. It identifies candidates, not successful decodes. Use native image error
-events for damaged images.
+The [shared](../shared.md#shared-package) `imageFormat` checks JPEG, PNG and
+WebP signatures independently of names or MIME labels. It identifies candidates,
+not successful decodes. Use native image error events for damaged images.
 
-`OriginalUrls.acquire(revisionKey, original)` creates a reference-counted lease
-over the unchanged `File`. The same revision key shares its URL across consumers.
+The shared `ObjectUrls.acquire(revisionKey, original)` creates a
+reference-counted lease over the unchanged original `File`. The same revision
+key shares its URL across consumers.
 Keys must include folder, entry and content revision; never reuse a key for
 changed bytes. Release a lease when its consumer unmounts or changes revision;
 `dispose()` revokes remaining resources and closes the cache. Acquire outside

@@ -1,7 +1,7 @@
 import init, { WasmReader, WASM_SRI } from '@contentauth/c2pa-wasm';
 import wasmSrc from '@contentauth/c2pa-wasm/c2pa.wasm?url';
 import { localReadContext, normalizeManifest, provenanceError, type Provenance } from './provenance';
-import type { ImageFormat } from '../images/original';
+import type { ImageFormat } from '@ai-tools/shared/image-format';
 
 globalThis.onmessage = async (event: MessageEvent<{ file: File; format: ImageFormat }>) => {
   let reader: WasmReader | undefined;

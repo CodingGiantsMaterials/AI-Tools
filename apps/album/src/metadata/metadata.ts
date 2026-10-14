@@ -1,4 +1,4 @@
-import type { ImageFormat } from '../images/original';
+import type { ImageFormat } from '@ai-tools/shared/image-format';
 import { captureDate, type CaptureDate } from './date';
 
 export interface Metadata {

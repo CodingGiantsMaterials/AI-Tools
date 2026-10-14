@@ -1,0 +1,22 @@
+{
+  "name": "@ai-tools/shared",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./header": "./src/Header.tsx",
+    "./i18n": "./src/i18n.ts",
+    "./icon": "./src/Icon.tsx",
+    "./image-format": "./src/image-format.ts",
+    "./indexed-db": "./src/indexed-db.ts",
+    "./logo.png": "./src/assets/coding-giants-small-logo.png",
+    "./object-urls": "./src/object-urls.ts",
+    "./preferences": "./src/preferences.ts",
+    "./theme.css": "./src/theme.css"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
+  }
+}

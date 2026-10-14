@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import type { Language } from '@ai-tools/shared/i18n';
+import { Icon } from '@ai-tools/shared/icon';
 import type { CollectionEntry } from './collection/collection-controller';
 import type { NotesController } from './notes/notes-controller';
-import type { Language, Messages } from './i18n';
-import { Icon } from './Icon';
+import type { Messages } from './i18n';
 import styles from './App.module.css';
 
 function Copy({ value, m }: { value: string; m: Messages }) {

@@ -10,9 +10,11 @@ and content security policy.
 | Player | `https://codinggiantsmaterials.github.io/AI-Tools/Player/` | `@ai-tools/player` |
 
 Applications live in `apps/<app>`. Shared TypeScript and Vite configuration is
-in `tsconfig.base.json` and `vite.shared.ts`. The
-[shared contract](docs/contracts/shared.md) describes the build, addresses and
-origin rules.
+in `tsconfig.base.json` and `vite.shared.ts`. Source modules used by several
+applications, such as the header, theme and translation core, are in the
+`@ai-tools/shared` workspace (`packages/shared`). The
+[shared contract](docs/contracts/shared.md) describes the build, addresses,
+origin rules and shared modules.
 
 ## Development and checks
 

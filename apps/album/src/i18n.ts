@@ -1,5 +1,5 @@
-export const languages = ['pl', 'en', 'de', 'es'] as const;
-export type Language = typeof languages[number];
+import type { Language, MessagesOf } from '@ai-tools/shared/i18n';
+
 const en = {
   choose: 'Choose folder', change: 'Change folder', refresh: 'Refresh', language: 'Language', theme: 'Color theme', light: 'Light', dark: 'Dark',
   carousel: 'Carousel', comparison: 'Comparison', view: 'View', field: 'Field', editingField: 'Changing field', pin: 'Pin field', unpin: 'Unpin field', pinned: 'Pinned', emptyField: 'No photo', comparisonEmpty: 'Another photo is needed for this field.', pinnedUnavailable: 'The pinned photo is unavailable.',
@@ -17,7 +17,7 @@ const en = {
   notes: 'Notes', notePlaceholder: 'Add a note…', noteIdentity: 'Preparing local identity…', noteIdentityError: 'Notes are unavailable because the file identity could not be read.', noteLoading: 'Loading note…', noteDirty: 'Unsaved changes', noteSaving: 'Saving…', noteSaved: 'Saved', noteReadError: 'Could not load the note.', noteWriteError: 'Could not save. Your draft is kept in memory.', noteLocal: 'Notes stay in this browser profile. Clearing site data removes them.',
   copy: 'Copy metadata', copied: 'Copied', copyError: 'Could not copy. Select the text to copy it.',
 };
-export type Messages = { [K in keyof typeof en]: string };
+export type Messages = MessagesOf<typeof en>;
 const pl: Messages = {
   choose: 'Wybierz folder', change: 'Zmień folder', refresh: 'Odśwież', language: 'Język', theme: 'Motyw kolorystyczny', light: 'Jasny', dark: 'Ciemny',
   carousel: 'Karuzela', comparison: 'Porównanie', view: 'Widok', field: 'Pole', editingField: 'Zmieniasz pole', pin: 'Przypnij pole', unpin: 'Odepnij pole', pinned: 'Przypięte', emptyField: 'Brak zdjęcia', comparisonEmpty: 'To pole wymaga kolejnego zdjęcia.', pinnedUnavailable: 'Przypięte zdjęcie jest niedostępne.',
@@ -57,9 +57,3 @@ const es: Messages = {
   notes: 'Notas', notePlaceholder: 'Añade una nota…', noteIdentity: 'Preparando identidad local…', noteIdentityError: 'Las notas no están disponibles porque no se pudo leer la identidad del archivo.', noteLoading: 'Cargando nota…', noteDirty: 'Cambios sin guardar', noteSaving: 'Guardando…', noteSaved: 'Guardado', noteReadError: 'No se pudo cargar la nota.', noteWriteError: 'No se pudo guardar. El borrador permanece en memoria.', noteLocal: 'Las notas permanecen en este perfil del navegador. Borrar los datos del sitio las elimina.', copy: 'Copiar metadatos', copied: 'Copiado', copyError: 'No se pudo copiar. Selecciona el texto para copiarlo.',
 };
 export const messages: Record<Language, Messages> = { pl, en, de, es };
-export function storedPreference(key: string): string | null {
-  try { return localStorage.getItem(`ai-tools-album-${key}`); } catch { return null; }
-}
-export function savePreference(key: string, value: string): void {
-  try { localStorage.setItem(`ai-tools-album-${key}`, value); } catch { /* Preferences remain usable in memory. */ }
-}

@@ -1,5 +1,5 @@
 import { SerialQueue, type WorkKey, type WorkResult } from '../core/work';
-import { imageFormat } from '../images/original';
+import { imageFormat } from '@ai-tools/shared/image-format';
 import { emptyProvenance, provenanceError, type Provenance } from './provenance';
 
 /** One directly owned worker per active read, including WASM initialization. */

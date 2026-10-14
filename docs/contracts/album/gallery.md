@@ -1,7 +1,7 @@
 # Gallery interface
 
 `App` owns one `CollectionController`, `NotesController` and shared
-`OriginalUrls` cache. The entire welcome area opens folder selection through a
+`ObjectUrls` cache. The entire welcome area opens folder selection through a
 keyboard-accessible button. After selecting a folder, the separate Change folder
 control remains available. Folder selection stays in the initiating gesture.
 An input `change` with an empty `FileList` selects an empty snapshot; a `cancel`
@@ -62,12 +62,17 @@ Copy uses the clipboard API only in a button gesture and reports failure locally
 until a draft is available and flushes on blur. The application also flushes on
 visibility loss and pagehide; these final transactions remain best effort.
 
-`i18n.ts` provides the complete typed PL/EN/DE/ES dictionaries. Persisted
-preferences use `ai-tools-album-language` and `ai-tools-album-theme` in localStorage;
-unavailable storage falls back to in-memory preferences. The default theme is
-light. Original metadata values and product names are never translated.
+`apps/album/src/i18n.ts` provides the complete PL/EN/DE/ES dictionaries, typed
+with the shared `MessagesOf`. The [shared](../shared.md#shared-package) `Header`
+places the view switch between the logo and the language and theme controls;
+`App` owns their state. Persisted preferences use the shared preference
+functions with the prefix `ai-tools-album`, that is `ai-tools-album-language`
+and `ai-tools-album-theme` in localStorage; unavailable storage falls back to
+in-memory preferences. The default language is Polish, without browser language
+detection, and the default theme is light. Original metadata values and product
+names are never translated.
 
-The provided logo is bundled unchanged at `apps/album/src/assets/coding-giants-small-logo.png`.
+The provided logo is bundled unchanged from the shared package.
 
 ## Comparison
 
