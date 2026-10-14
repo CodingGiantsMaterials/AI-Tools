@@ -46,6 +46,10 @@ authorized delivery scope.
 
 Delegate only when delegation is within the task's authorized scope.
 
+Reusable [role templates](delegation-prompts/orchestrator.md) and
+[usage instructions](delegation-prompts/README.md) are available for delegated
+tasks.
+
 Give each worker a self-contained brief with the intended outcome and
 rationale, scope, owned paths, exact execution directory and branch, recorded
 base (`BASE_SHA`), required instruction paths, acceptance checks, and permitted
@@ -65,8 +69,9 @@ including staging, unstaging, index control, and commits. Keep this ownership
 exclusive throughout staging, index verification, and commit; other workers
 may inspect Git state but must not mutate it.
 
-Each worker validates its own result; the coordinating agent reviews the
-complete output and verifies the combined changes under the
+Each worker validates its own result. The coordinating agent may delegate
+technical review to independent reviewers but remains responsible for final
+acceptance under the
 [validation rules](docs/workflows/repository-development.md#validation).
 
 ## Completion and handoff
