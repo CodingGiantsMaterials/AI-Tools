@@ -63,7 +63,7 @@ npm run dev
 ```
 
 The development server uses HTTPS with a locally generated, self-signed
-certificate. Production assets are built for `/Web-Album/` and need only static
+certificate. Production assets are built for `/AI-Tools/` and need only static
 HTTPS hosting.
 
 ```powershell
@@ -80,8 +80,8 @@ the publication helper and builds the application for pull requests and pushes
 to `main`. It publishes `dist` only from `main` and can also be run manually
 on that branch.
 
-The project URL is `https://PrzemyslawSochon.github.io/Web-Album/`. Vite's
-`base: '/Web-Album/'` applies to the logo, JavaScript, CSS, workers and WASM.
+The project URL is `https://codinggiantsmaterials.github.io/AI-Tools/`. Vite's
+`base: '/AI-Tools/'` applies to the logo, JavaScript, CSS, workers and WASM.
 Changing the repository path requires updating that base before building.
 The deployment needs no server routes, cross-origin isolation or custom headers;
 the production HTML includes a CSP. Verify the Actions run and published asset
