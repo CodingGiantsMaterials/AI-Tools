@@ -20,6 +20,9 @@ publication or merge.
 
 ## Local checkpoint
 
+For orchestrated tasks, create a local checkpoint as each stage of repository
+changes passes review and required validation.
+
 1. Group the checkpoint under the
    [scope rules](repository-development.md#scope-and-implementation). In a
    shared checkout, the [Git owner](../../AGENTS.md#internal-agents) performs

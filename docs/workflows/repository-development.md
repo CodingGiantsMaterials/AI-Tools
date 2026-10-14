@@ -35,6 +35,9 @@ replace it with the current `HEAD`, the default branch, or the PR target unless
 the user explicitly changes the agreed task base. Carry the branch and
 `BASE_SHA` into subsequent stages and handoffs.
 
+For a subtask with a narrower comparison, record its review base separately in
+its brief; it does not replace the original task's `BASE_SHA`.
+
 `BASE_SHA` defines the task's review scope. Review the full PR separately:
 use the diff from the merge base of the recorded PR target and candidate
 commits to the candidate, and the commits reachable from the candidate but
@@ -62,6 +65,9 @@ configuration. Remove structures and comments kept solely to memorialize a
 discarded solution. Update affected consumers and required migrations while
 preserving working contracts and authorization boundaries outside the scope.
 
+Role templates apply only to their assigned role. Reading or attaching them
+does not activate all roles or expand authorization.
+
 If a complete fix requires expanding the agreed outcome, propose a narrower
 result or independently useful stages before expanding the work.
 
@@ -79,6 +85,20 @@ and documentation. Look for unrelated scope, regressions, exposed secrets,
 debugging artifacts, and obsolete code. Set the shell variable `BASE_SHA` to
 the recorded commit and run
 `git diff --check "$BASE_SHA" --` to check whitespace errors in the tracked diff.
+
+Complete review describes coverage, not a requirement for one agent to load
+the entire diff into its context. Review may be divided among independent
+reviewers with explicit scopes, including affected interfaces and dependencies.
+Record each review's candidate, scope, findings, and limitations. The
+coordinating agent checks that the reviews collectively cover the complete
+task and that the combined result meets the original requirements. For this
+assessment, reuse applicable detailed reviews and focus on omissions, cross-task
+interactions, affected assumptions, and integration evidence. It may be delegated;
+passing subtask reviews alone is insufficient.
+
+The coordinating agent may inspect targeted code, diffs, or evidence to resolve
+a concrete question. It need not repeat completed technical reviews merely to
+accept the task.
 
 Add or extend tests for distinct observable behavior, real regressions, and
 material integration, authorization, or state boundaries. Prefer extending
@@ -113,6 +133,27 @@ invalidate earlier results.
 
 Report what was checked, the results, and any remaining limitations. Do not
 describe skipped or unavailable checks as passing.
+
+### Review candidates
+
+Review evidence must identify the exact contents assessed. A fully committed
+candidate can be identified by its full commit ID. When handing uncommitted
+work to another reviewer, use a frozen snapshot or a versioned contents
+manifest covering the staged, unstaged, and intended untracked files. A branch
+name or `HEAD` alone does not identify that work.
+
+For an agent's local review of its own changes in the same checkout, tool output
+can document the checkout, full current commit ID, reviewed diff, and intended
+untracked contents. If that state remains stable, no separate snapshot or
+manifest is required.
+
+Prevent writes to the reviewed contents while they are being inspected, or use
+an authorized isolated snapshot. Creating a snapshot does not authorize
+additional branches or worktrees.
+
+When those contents change, reassess affected reviews and checks before
+acceptance; reuse evidence that remains applicable under the validation rules
+above.
 
 ## Documentation
 
