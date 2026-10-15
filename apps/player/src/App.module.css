@@ -5,7 +5,7 @@
  */
 .app {
   --row: clamp(44px, round(down, min(9.4vh, 5.3vw), 1px), 96px);
-  --cover: calc(var(--row) * 4.6);
+  --cover: calc(var(--row) * 5.06);
   --list: calc(var(--row) * 5.75);
   --gap: calc(var(--row) * 1.33);
   --content: calc(var(--cover) + var(--gap) + var(--list));
