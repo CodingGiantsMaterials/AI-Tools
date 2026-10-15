@@ -5,14 +5,17 @@ import { browserLanguage, isLanguage, type Language } from '@ai-tools/shared/i18
 import { savePreference, storedPreference } from '@ai-tools/shared/preferences';
 import { AudioController, type AudioState } from './audio/audio-controller';
 import { LibraryController, type Notice } from './library/library-controller';
-import { LibraryRepository } from './library/library-repository';
+import { LibraryRepository, libraryDatabase } from './library/library-repository';
 import { CoverField } from './components/CoverField';
 import { PlayerPanel } from './components/PlayerPanel';
 import { TrackList } from './components/TrackList';
 import { messages, type Messages } from './i18n';
 import styles from './App.module.css';
 
-const preferencePrefix = 'ai-tools-player';
+export function isDemoPath(pathname: string): boolean {
+  const normalized = pathname.replace(/(?:\/index\.html|\/)+$/, '');
+  return normalized.endsWith('/demo') || normalized === 'demo';
+}
 
 function noticeText(notice: Notice, m: Messages): string {
   switch (notice.code) {
@@ -22,10 +25,12 @@ function noticeText(notice: Notice, m: Messages): string {
 }
 const audioErrors = { load: 'loadFailed', playback: 'playbackFailed', play: 'playFailed' } as const satisfies Record<NonNullable<AudioState['error']>, keyof Messages>;
 
-export function App() {
+export function App({ isDemo = typeof window !== 'undefined' && isDemoPath(window.location.pathname) }: { isDemo?: boolean } = {}) {
+  const preferencePrefix = isDemo ? 'ai-tools-player-demo' : 'ai-tools-player';
+  const databaseName = isDemo ? 'ai-tools-player-demo' : libraryDatabase.name;
   const [{ audio, library }] = useState(() => {
     const audio = new AudioController();
-    return { audio, library: new LibraryController(new LibraryRepository(), audio) };
+    return { audio, library: new LibraryController(new LibraryRepository(indexedDB, databaseName), audio, Math.random, isDemo) };
   });
   const audioState = useSyncExternalStore(audio.subscribe, audio.getSnapshot);
   const libraryState = useSyncExternalStore(library.subscribe, library.getSnapshot);
