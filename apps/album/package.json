@@ -1,0 +1,20 @@
+{
+  "name": "@ai-tools/album",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@ai-tools/shared": "*",
+    "@contentauth/c2pa-utilities": "0.3.1",
+    "@contentauth/c2pa-wasm": "0.13.2",
+    "@xmldom/xmldom": "0.9.12",
+    "exifreader": "4.47.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  }
+}

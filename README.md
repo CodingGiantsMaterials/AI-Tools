@@ -1,93 +1,61 @@
-# Web Album
+# AI-Tools
 
-A static browser application for browsing local photos in capture-date order.
-A looping carousel, thumbnail strip, enlarged preview and two-field comparison
-display original images, including animated PNG and WebP. Pin either comparison
-field to change the other. The active-image panel shows recorded metadata,
-C2PA declarations and automatically saved local notes. The interface supports
-Polish, English, German and Spanish, with light and dark themes.
+Static browser applications kept in one npm workspaces repository and published
+together on GitHub Pages. Each application has its own Vite build, base path
+and content security policy.
 
-## Using the gallery
+| Application | Address | Workspace |
+| --- | --- | --- |
+| Album | `https://codinggiantsmaterials.github.io/AI-Tools/Album/` | [`@ai-tools/album`](apps/album/README.md) |
+| Player | `https://codinggiantsmaterials.github.io/AI-Tools/Player/` | [`@ai-tools/player`](apps/player/README.md) |
 
-Click the welcome area to choose a local folder containing JPEG, PNG or WebP
-images. Use Change folder to select another folder. Only its direct files
-are read; subfolders are skipped. Where read-only directory access is available,
-Refresh scans for changes, and navigation checks the selected file again.
-Otherwise the browser imports a snapshot: choose the folder again to load changes.
-Cancelling the picker preserves the current collection. Browsers that do not
-report an empty folder selection cannot distinguish it from a cancelled picker.
-
-Use the arrows, side images or thumbnails to navigate. Clicking the already
-central image opens the full-frame preview; Escape closes it. Notes and form
-controls keep their own keyboard behavior. Comparison shows which field is active;
-its metadata and notes follow that field. A deleted pinned image stays unavailable
-until it returns or is unpinned.
-
-Photos are ordered by capture date: EXIF first, then XMP, with undated photos
-last and deterministic filename ties. Dates with offsets are normalized to UTC;
-offset-free components are an ordering convention, not a claimed time zone.
-
-## Privacy and local data
-
-Photos are read without modifying the originals. Images, metadata, hashes and
-notes remain on the device. Only bundled static application assets are requested;
-image-supplied URLs, remote manifests, trust lists and OCSP are not fetched.
-There is no backend, account, analytics, external runtime CDN or service worker.
-Opening the application initially requires access to its static hosting.
-
-Notes save automatically in IndexedDB (`web-album-local-notes`, schema 1) after
-the original file's full-byte SHA-256 is ready. Identical copies, moves and renames
-share a note. Any byte change, including metadata, gives a new identity. Wait for
-the saved status before closing: pending exit-time writes are only best effort.
-A failed save retains the draft in memory; edits in another tab can cause a
-conflict instead of silently overwriting that tab's note.
-
-Committed notes survive reopening in the same browser profile and origin.
-Clearing site data, losing storage or changing profile has no recovery or backup.
-The database name identifies this app; project paths do not isolate it from other
-apps at the same origin. Language and theme preferences use localStorage.
-
-C2PA presents recorded declarations and available editing steps, not a signature
-trust verdict or an AI detector. Neither presence nor absence proves authenticity.
-Oversized or malformed metadata is bounded and reported separately from image
-display. Native browser rendering controls animation, orientation and ICC
-conversion; reading a profile does not establish full color fidelity.
+Applications live in `apps/<app>`. Shared TypeScript and Vite configuration is
+in `tsconfig.base.json` and `vite.shared.ts`. Source modules used by several
+applications, such as the header, theme and translation core, are in the
+`@ai-tools/shared` workspace (`packages/shared`). The
+[shared contract](docs/contracts/shared.md) describes the build, addresses,
+origin rules and shared modules.
 
 ## Development and checks
 
-Use Node.js 24 LTS (24.18.0 or later in the 24.x line):
+Use Node.js 24 LTS (24.18.0 or later in the 24.x line) and run every command
+from the repository root:
 
-```powershell
-npm ci
-npm run dev
-```
+| Purpose | Command |
+| --- | --- |
+| Install dependencies | `npm ci` |
+| Start one application's development server | `npm run dev -w @ai-tools/<app>` |
+| Type-check every workspace | `npm run typecheck` |
+| Build every application into `dist/<App>/` | `npm run build` |
+| Preview one built application | `npm run preview -w @ai-tools/<app>` |
 
-The development server uses HTTPS with a locally generated, self-signed
-certificate. Production assets are built for `/AI-Tools/` and need only static
-HTTPS hosting.
-
-```powershell
-npm run build
-```
-
-`npm run preview` serves `dist`.
+Development servers use HTTPS with a locally generated, self-signed
+certificate. The Player preview uses HTTP on `127.0.0.1` so that browsers
+register its service worker; check offline use and updates there, as described
+in the [Player README](apps/player/README.md#development-and-checks).
 
 ## GitHub Pages
 
 In repository **Settings → Pages**, choose **GitHub Actions** as the publishing
 source. The [workflow](.github/workflows/pages.yml) installs dependencies, checks
-the publication helper and builds the application for pull requests and pushes
+the publication helper and builds all applications for pull requests and pushes
 to `main`. It publishes `dist` only from `main` and can also be run manually
 on that branch.
 
-The project URL is `https://codinggiantsmaterials.github.io/AI-Tools/`. Vite's
-`base: '/AI-Tools/'` applies to the logo, JavaScript, CSS, workers and WASM.
-Changing the repository path requires updating that base before building.
-The deployment needs no server routes, cross-origin isolation or custom headers;
-the production HTML includes a CSP. Verify the Actions run and published asset
-requests after deployment before treating the hosted release as accepted.
+Every deployment contains all applications, so a failed build of one blocks
+publication of the others. Verify the Actions run and the published asset
+requests of each application after deployment before treating the hosted
+release as accepted.
 
-See the [foundation contracts](docs/contracts/foundation.md) and
-[collection and notes contracts](docs/contracts/local-data.md) for service
-interfaces, lifecycle rules and capability limits. The
-[gallery contract](docs/contracts/gallery.md) describes the UI integration.
+## Shared origin
+
+All applications run at the origin `https://codinggiantsmaterials.github.io`,
+like the organization's other Pages projects. They share IndexedDB,
+localStorage, Cache Storage and the storage quota. A
+`navigator.storage.persist()` grant applies to the whole origin, and clearing
+site data removes the data of every application. Player stores its library in
+the IndexedDB database `ai-tools-player` and manually chosen preferences under
+the localStorage keys `ai-tools-player-language` and `ai-tools-player-theme`.
+Its service worker controls only `/AI-Tools/Player/`. Distinct data identifiers
+prevent collisions but are not a security boundary; see the
+[shared contract](docs/contracts/shared.md#shared-origin).

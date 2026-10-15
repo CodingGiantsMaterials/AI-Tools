@@ -1,0 +1,23 @@
+/*
+ * One unit, a whole number of pixels, sizes the cover, the list rows and their spacing in the proportions of
+ * the mockup and follows the window size (desktop only). The main content always reserves the fixed panel's
+ * height, so the panel never covers the list; small windows scroll the page.
+ */
+.app {
+  --row: clamp(44px, round(down, min(9.4vh, 5.3vw), 1px), 96px);
+  --cover: calc(var(--row) * 5.06);
+  --list: calc(var(--row) * 5.75);
+  --gap: calc(var(--row) * 1.33);
+  --content: calc(var(--cover) + var(--gap) + var(--list));
+  --panel-height: 84px;
+  /* Light grey of the mockup's icons, kept at 3:1 contrast or more on --surface and on the selected row's --soft. */
+  --icon: #838d9a;
+  display: flex; flex-direction: column; min-height: 100dvh; padding: 22px 36px var(--panel-height);
+}
+:global(:root[data-theme="dark"]) .app { --icon: var(--muted); }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 76px; }
+/* The update offer sits in the header, so showing it never moves the cover, the list or the panel. */
+.update { display: flex; align-items: center; gap: 14px; padding: 5px 5px 5px 18px; border: 1px solid var(--line); border-radius: 24px; background: var(--soft); font-size: 14px; }
+.update button { padding: 7px 16px; border: 0; border-radius: 19px; background: var(--accent); color: var(--surface); font-weight: 600; }
+.main { display: grid; flex: 1; grid-template-columns: var(--cover) var(--list); justify-content: center; align-content: center; column-gap: var(--gap); padding: 24px 0; }
+.status { grid-column: 1 / -1; min-height: 1.5em; margin: 12px 0 0; color: var(--muted); font-size: 14px; text-align: center; }
