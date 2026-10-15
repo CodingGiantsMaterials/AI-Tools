@@ -5,7 +5,7 @@
 `AudioController` in `apps/player/src/audio/audio-controller.ts` is the only
 owner of the application's audio element. It creates one element with
 `new Audio()` on first use, outside the DOM, so hiding the player panel never
-destroys it. It sets `preload = 'auto'` and `volume = 0.5` once, mutes with
+destroys it. It sets `preload = 'auto'` and `volume = 0.425` once, mutes with
 `muted` and never uses `loop`.
 
 `getSnapshot()` returns `AudioState`:
@@ -64,7 +64,7 @@ stays visible.
 - Seeking keeps the play state. A paused track seeked to its end stays current
   and paused there, also in browsers that report an end; Play then starts it
   from the beginning. Pause and natural ends never hide the panel.
-- Volume stays at 0.5; mute switches the sound off and back to that level.
+- Volume stays at 0.425; mute switches the sound off and back to that level.
 
 ## Next, Previous and repeat
 
@@ -97,10 +97,10 @@ Next and of natural ends:
   Neighbours follow the list order, and the first and last rows are neighbours.
   An unused track that is not a neighbour of the current one is preferred;
   otherwise any unused track is chosen.
-- When every track is used, repeat-off stops and clears the used tracks.
-  Repeat-all, or repeat-one on Next (which switches to repeat-all), starts a
-  new cycle: it excludes the last track when another exists, prefers its
-  non-neighbours and clears the used tracks.
+- When every track is used, a new cycle starts without stopping: it excludes
+  the last track when another exists, prefers its non-neighbours and clears the
+  used tracks. Switching the last track (whether through manual Next or track
+  advance) in shuffle mode continues playback in a loop without stopping.
 - The used tracks change only while shuffle is on. A track becomes used when it
   starts playing, and a shuffle step marks the track it leaves. Toggling shuffle
   never clears them or interrupts playback. Deleted tracks leave the set, and

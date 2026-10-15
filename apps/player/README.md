@@ -21,7 +21,7 @@ The first track added appears in the player at the bottom, paused. Clicking
 another track while music plays starts it from the beginning; while paused, it
 only prepares the track. The player offers play/pause, previous, next, a
 progress slider, repeat (off, all tracks, one track), shuffle and mute; the
-volume is fixed at half. Deleting the current track stops it and hides the
+volume is fixed at 0.425. Deleting the current track stops it and hides the
 player until you select another track.
 
 Files that are not MP3 files or supported images, duplicates with the same name,

@@ -57,9 +57,9 @@ export type Step =
  * - Without shuffle, the next occupied row follows; after the last row repeat-all wraps and repeat-off
  *   stops.
  * - With shuffle, the choice is an unused track that is not a neighbour of the current one, otherwise any
- *   unused track; first and last rows are neighbours. An exhausted cycle stops and clears the used set with
- *   repeat-off, or starts a new cycle that avoids the last track when another exists and prefers its
- *   non-neighbours.
+ *   unused track; first and last rows are neighbours. An exhausted cycle starts a new cycle that avoids the
+ *   last track when another exists and prefers its non-neighbours, continuing playback in a loop without
+ *   stopping.
  * - The used set changes only in shuffle steps: a shuffle step marks the track it leaves used, so it
  *   is not picked again in the cycle. Without shuffle the set is neither filled nor cleared. Tracks that are
  *   no longer on the list leave it; new tracks are simply not in it.
@@ -87,7 +87,6 @@ export function step({ order, current, used: previouslyUsed, repeat, shuffle, re
   const usedNow = used.includes(current) ? used : [...used, current];
   const unused = order.filter((id) => !usedNow.includes(id));
   if (unused.length > 0) return go(pick(preferDistant(unused, order, index), random), usedNow);
-  if (mode === 'off') return { type: 'stop', used: [], repeat };
   const others = order.length > 1 ? order.filter((id) => id !== current) : order;
   return go(pick(preferDistant(others, order, index), random), []);
 }

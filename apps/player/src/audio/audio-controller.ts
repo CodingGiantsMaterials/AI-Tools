@@ -19,7 +19,7 @@ export interface AudioEvent { type: 'playing' | 'paused' | 'ended' | 'progress' 
 export interface PrepareOptions { position?: number; play?: boolean }
 
 const idle: AudioState = { trackId: null, status: 'idle', playIntent: false, position: 0, duration: 0, muted: false, error: null };
-const fixedVolume = 0.5;
+const fixedVolume = 0.425;
 
 /**
  * Playing, or playback requested and not yet settled (a track preparing to play, or a pending `play()`).
