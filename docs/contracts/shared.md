@@ -19,8 +19,10 @@ application build type-checks before `vite build`.
 emptied on every build. It adds React, the local HTTPS certificate, the
 development CSP relaxation, the application's extra plugins and ES module
 workers. It resolves `react` and `react-dom` from the application, so linked
-workspace packages never bundle a second React copy. Development and preview
-servers use a generated self-signed certificate. For Vite's inline refresh
+workspace packages never bundle a second React copy. Development servers and
+the Album preview use a generated self-signed certificate. The Player preview
+serves HTTP on `127.0.0.1`, a secure context, because Chrome rejects service
+worker registration with a self-signed certificate. For Vite's inline refresh
 scripts and styles, the development server alone adds `'unsafe-inline'` to the
 `script-src` and `style-src` directives of the CSP `meta` tag, whatever their
 other sources; production retains each application's CSP in its `index.html`.
@@ -36,8 +38,14 @@ requires updating the base in `vite.shared.ts` before building. Each application
 has one screen and needs no router, SPA `404.html` or server rules.
 
 The Pages artifact is the whole `dist` directory, so every deployment publishes
-all applications together. Each application runs its own development server,
-for example `https://localhost:5173/AI-Tools/Album/`.
+all applications together. Each application runs its own development server on
+its own port, for example `https://localhost:5173/AI-Tools/Album/`.
+
+A service worker controls at most the directory of its script, and GitHub Pages
+cannot send `Service-Worker-Allowed` to widen that scope. Player's
+`/AI-Tools/Player/sw.js` therefore controls only `/AI-Tools/Player/` and never
+Album, which has no service worker. Because one deployment publishes both
+applications, a change to shared code also makes Player offer an update.
 
 ## Shared origin
 
@@ -48,9 +56,13 @@ origin, and clearing site data removes the data of every application.
 
 Each application prefixes its IndexedDB database names and localStorage keys
 with `ai-tools-<app>`. Album uses the database `ai-tools-album` and the keys
-`ai-tools-album-language` and `ai-tools-album-theme`. Distinct names prevent
-collisions but are not a security boundary: do not host untrusted applications
-at this origin.
+`ai-tools-album-language` and `ai-tools-album-theme`. Player uses the database
+`ai-tools-player` and the keys `ai-tools-player-language` and
+`ai-tools-player-theme`. Player's Cache Storage precache is named after its
+service worker scope, so it does not collide with other scopes. Player's large
+files count against the shared quota, and its `navigator.storage.persist()`
+request applies to the whole origin. Distinct names prevent collisions but are
+not a security boundary: do not host untrusted applications at this origin.
 
 ## Shared package
 

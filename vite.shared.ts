@@ -17,10 +17,12 @@ const developmentCsp: Plugin = {
 
 /** The application name is the case-sensitive published directory under /AI-Tools/. */
 export function appConfig(app: 'Album' | 'Player', plugins: PluginOption[] = []) {
+  // Chrome rejects service worker registration with the self-signed certificate, so the Player preview stays on HTTP.
+  const https: Plugin = { ...basicSsl(), apply: (_, env) => app !== 'Player' || !env.isPreview };
   return defineConfig({
     base: `/AI-Tools/${app}/`,
     build: { outDir: `../../dist/${app}`, emptyOutDir: true },
-    plugins: [react(), basicSsl(), developmentCsp, ...plugins],
+    plugins: [react(), https, developmentCsp, ...plugins],
     // Linked workspace packages must import the application's React, even if their real path differs in case.
     resolve: { dedupe: ['react', 'react-dom'] },
     worker: { format: 'es' },

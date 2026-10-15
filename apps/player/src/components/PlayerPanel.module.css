@@ -1,0 +1,14 @@
+.panel { position: fixed; right: 0; bottom: 0; left: 0; z-index: 10; height: var(--panel-height); border-top: 1px solid var(--line); background: var(--surface); }
+/* As wide as the cover and the list above it. */
+.inner { display: flex; align-items: center; gap: 20px; width: min(var(--content), 100% - 72px); height: 100%; margin: 0 auto; }
+.group { display: flex; flex: none; align-items: center; gap: 6px; }
+.panel svg { width: 24px; height: 24px; }
+.control { position: relative; display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); }
+.control:hover { color: var(--ink); }
+.play { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: var(--accent); color: var(--surface); }
+.play svg, .group:first-child .control svg { fill: currentColor; }
+/* A toggle that is on, and both repeat modes, get a filled background and a dot; repeat-one also shows the "1" icon. */
+.control:is([aria-pressed="true"], [data-repeat="all"], [data-repeat="one"]) { background: var(--check); color: var(--ink); }
+.control:is([aria-pressed="true"], [data-repeat="all"], [data-repeat="one"])::after { content: ""; position: absolute; bottom: 3px; left: calc(50% - 2px); width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.progress { flex: 1; min-width: 0; accent-color: var(--accent); }
+.time { flex: none; min-width: 11ch; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }

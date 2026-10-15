@@ -7,7 +7,7 @@ and content security policy.
 | Application | Address | Workspace |
 | --- | --- | --- |
 | Album | `https://codinggiantsmaterials.github.io/AI-Tools/Album/` | [`@ai-tools/album`](apps/album/README.md) |
-| Player | `https://codinggiantsmaterials.github.io/AI-Tools/Player/` | `@ai-tools/player` |
+| Player | `https://codinggiantsmaterials.github.io/AI-Tools/Player/` | [`@ai-tools/player`](apps/player/README.md) |
 
 Applications live in `apps/<app>`. Shared TypeScript and Vite configuration is
 in `tsconfig.base.json` and `vite.shared.ts`. Source modules used by several
@@ -30,7 +30,9 @@ from the repository root:
 | Preview one built application | `npm run preview -w @ai-tools/<app>` |
 
 Development servers use HTTPS with a locally generated, self-signed
-certificate.
+certificate. The Player preview uses HTTP on `127.0.0.1` so that browsers
+register its service worker; check offline use and updates there, as described
+in the [Player README](apps/player/README.md#development-and-checks).
 
 ## GitHub Pages
 
@@ -51,6 +53,9 @@ All applications run at the origin `https://codinggiantsmaterials.github.io`,
 like the organization's other Pages projects. They share IndexedDB,
 localStorage, Cache Storage and the storage quota. A
 `navigator.storage.persist()` grant applies to the whole origin, and clearing
-site data removes the data of every application. Distinct data identifiers
+site data removes the data of every application. Player stores its library in
+the IndexedDB database `ai-tools-player` and manually chosen preferences under
+the localStorage keys `ai-tools-player-language` and `ai-tools-player-theme`.
+Its service worker controls only `/AI-Tools/Player/`. Distinct data identifiers
 prevent collisions but are not a security boundary; see the
 [shared contract](docs/contracts/shared.md#shared-origin).

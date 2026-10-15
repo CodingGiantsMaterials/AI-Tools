@@ -1,0 +1,16 @@
+/* Row height, icon and text sizes follow the layout unit in App.module.css; exactly six rows are visible. */
+.tracks { min-width: 0; }
+.list { height: calc(6 * var(--row)); margin: 0; padding: 0; overflow-y: auto; list-style: none; overscroll-behavior: contain; scrollbar-width: thin; }
+.list :focus-visible { outline-offset: -3px; }
+.row { display: flex; align-items: center; gap: calc(var(--row) * .2); height: var(--row); padding-right: 12px; border-bottom: 1px solid var(--line); font-size: calc(var(--row) * .46); }
+.current { background: var(--soft); box-shadow: inset 3px 0 0 var(--accent); }
+.action { display: grid; flex: none; place-items: center; width: calc(var(--row) * .78); height: calc(var(--row) * .78); padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--icon); }
+.action svg { width: 100%; height: 100%; }
+.action:hover, .arrow:hover { color: var(--ink); }
+.label, .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.label { color: var(--muted); }
+.select { display: flex; flex: 1; align-items: center; gap: 12px; min-width: 0; height: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; text-align: left; }
+.current .name { font-weight: 600; }
+.pending { flex: none; color: var(--muted); font-size: calc(var(--row) * .2); }
+.arrow { display: grid; place-items: center; width: calc(var(--row) * .8); height: calc(var(--row) * .56); margin: calc(var(--row) * .22) auto 0; padding: 0; border: 0; background: transparent; color: var(--icon); }
+.arrow svg { width: calc(var(--row) * .4); height: calc(var(--row) * .36); }
