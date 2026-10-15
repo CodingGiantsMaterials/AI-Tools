@@ -41,12 +41,15 @@ display only; the stored file is unchanged.
 ## Player panel
 
 The panel holds Previous, Play/Pause, Next, a native range slider, the time,
-Repeat, Shuffle and Mute. Clicking or dragging the slider seeks, and its
+Repeat, Shuffle and a volume container. The volume container groups the Mute
+button and an expanding native volume slider (capped at 0.425) that reveals on
+hover or focus. Clicking or dragging the progress slider seeks, and its
 `change` event saves the position. The time reads `mm:ss / mm:ss` with uncapped
 minutes and `00:00` while the duration is unknown. The file name appears on the
-list, not in the panel, and there is no stop button or volume slider. Shuffle
-and Mute are toggles with `aria-pressed` and constant names; Repeat names its
-state and shows a "1" for repeat-one. All controls are native buttons with
+list, not in the panel, and there is no stop button. Shuffle and Mute are toggles
+with `aria-pressed` and constant names; the volume icon shows `volume-off` when
+muted or at zero volume, and `volume` otherwise. Repeat names its state and
+shows a "1" for repeat-one. All controls are native buttons or inputs with
 translated accessible names, without custom keyboard shortcuts.
 
 ## Messages

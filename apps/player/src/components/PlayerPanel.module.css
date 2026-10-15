@@ -12,3 +12,6 @@
 .control:is([aria-pressed="true"], [data-repeat="all"], [data-repeat="one"])::after { content: ""; position: absolute; bottom: 3px; left: calc(50% - 2px); width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
 .progress { flex: 1; min-width: 0; accent-color: var(--accent); }
 .time { flex: none; min-width: 11ch; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.volumeContainer { display: flex; align-items: center; }
+.volumeSlider { width: 0; min-width: 0; margin: 0; opacity: 0; pointer-events: none; accent-color: var(--accent); cursor: pointer; transition: width 0.2s ease, opacity 0.2s ease; }
+.volumeContainer:is(:hover, :focus-within) .volumeSlider { width: 72px; opacity: 1; pointer-events: auto; }

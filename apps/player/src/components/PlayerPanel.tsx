@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Icon } from '@ai-tools/shared/icon';
-import { isActive, type AudioController, type AudioState } from '../audio/audio-controller';
+import { isActive, maxVolume, type AudioController, type AudioState } from '../audio/audio-controller';
 import type { LibraryController } from '../library/library-controller';
 import type { Repeat } from '../domain/playback';
 import { formatTime } from '../domain/time';
@@ -18,7 +18,7 @@ interface PlayerPanelProps {
 
 const repeatLabels = { off: 'repeatOff', all: 'repeatAll', one: 'repeatOne' } as const satisfies Record<Repeat, keyof Messages>;
 
-/** Fixed to the bottom edge while a track is current; hiding it never destroys the audio element. No stop button or volume slider. */
+/** Fixed to the bottom edge while a track is current; hiding it never destroys the audio element. No stop button. */
 export function PlayerPanel({ state, repeat, shuffle, audio, library, m }: PlayerPanelProps) {
   const range = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -50,9 +50,14 @@ export function PlayerPanel({ state, repeat, shuffle, audio, library, m }: Playe
         <button className={styles.control} aria-pressed={shuffle} aria-label={m.shuffle} title={m.shuffle} onClick={() => library.toggleShuffle()}>
           <Icon name="shuffle" />
         </button>
-        <button className={styles.control} aria-pressed={state.muted} aria-label={m.mute} title={m.mute} onClick={() => library.setMuted(!state.muted)}>
-          <Icon name={state.muted ? 'volume-off' : 'volume'} />
-        </button>
+        <div className={styles.volumeContainer}>
+          <button className={styles.control} aria-pressed={state.muted} aria-label={m.mute} title={m.mute} onClick={() => library.setMuted(!state.muted)}>
+            <Icon name={state.muted || state.volume === 0 ? 'volume-off' : 'volume'} />
+          </button>
+          <input className={styles.volumeSlider} type="range" min={0} max={maxVolume} step={0.005}
+            value={state.muted ? 0 : state.volume} aria-label={m.volume}
+            onChange={(event) => audio.setVolume(event.target.valueAsNumber)} />
+        </div>
       </div>
     </div>
   </section>;

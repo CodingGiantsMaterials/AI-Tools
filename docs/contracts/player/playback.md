@@ -5,7 +5,7 @@
 `AudioController` in `apps/player/src/audio/audio-controller.ts` is the only
 owner of the application's audio element. It creates one element with
 `new Audio()` on first use, outside the DOM, so hiding the player panel never
-destroys it. It sets `preload = 'auto'` and `volume = 0.425` once, mutes with
+destroys it. It sets `preload = 'auto'` and initial `volume = 0.425`, mutes with
 `muted` and never uses `loop`.
 
 `getSnapshot()` returns `AudioState`:
@@ -13,7 +13,7 @@ destroys it. It sets `preload = 'auto'` and `volume = 0.425` once, mutes with
 - `trackId`: the current track; `null` hides the panel;
 - `status`: `idle`, `preparing`, `paused`, `playing` or `error`, changed only by
   element events and settled operations;
-- `playIntent`, `position`, `duration` and `muted`;
+- `playIntent`, `position`, `duration`, `muted` and `volume`;
 - `error`: `load` when the stored file cannot be read, `playback` when the
   browser cannot decode or play it, `play` when `play()` is refused, or `null`.
 
@@ -30,6 +30,8 @@ an end reached while playing; `error` reports each new error.
 - `restart()` plays the same track from 0.
 - `stop()` pauses and rewinds; the track stays current.
 - `setMuted(muted)` switches mute.
+- `setVolume(volume)` clamps volume to `[0, 0.425]`, updates the element volume,
+  unmutes when setting a positive volume while muted, and publishes the update.
 - `clear()` stops, releases the file and deselects the track, which hides the
   panel.
 
@@ -64,7 +66,9 @@ stays visible.
 - Seeking keeps the play state. A paused track seeked to its end stays current
   and paused there, also in browsers that report an end; Play then starts it
   from the beginning. Pause and natural ends never hide the panel.
-- Volume stays at 0.425; mute switches the sound off and back to that level.
+- Maximum volume is capped at 0.425; the slider adjusts volume within
+  `[0, 0.425]`, and setting volume above 0 unmutes. Mute switches the sound off
+  and unmuting restores the current volume.
 
 ## Next, Previous and repeat
 

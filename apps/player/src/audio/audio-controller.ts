@@ -11,6 +11,7 @@ export interface AudioState {
   position: number;
   duration: number;
   muted: boolean;
+  volume: number;
   /** `load`: the stored file could not be read; `playback`: the browser cannot decode or play it; `play`: `play()` was refused. */
   error: 'load' | 'playback' | 'play' | null;
 }
@@ -18,8 +19,8 @@ export interface AudioState {
 export interface AudioEvent { type: 'playing' | 'paused' | 'ended' | 'progress' | 'error'; trackId: string }
 export interface PrepareOptions { position?: number; play?: boolean }
 
-const idle: AudioState = { trackId: null, status: 'idle', playIntent: false, position: 0, duration: 0, muted: false, error: null };
-const fixedVolume = 0.425;
+export const maxVolume = 0.425;
+const idle: AudioState = { trackId: null, status: 'idle', playIntent: false, position: 0, duration: 0, muted: false, volume: maxVolume, error: null };
 
 /**
  * Playing, or playback requested and not yet settled (a track preparing to play, or a pending `play()`).
@@ -47,7 +48,7 @@ export class AudioController {
     ['loadedmetadata', () => this.onMetadata()], ['durationchange', () => this.onDuration()],
     ['timeupdate', () => this.onTime()], ['seeked', () => this.onTime()], ['playing', () => this.onPlaying()],
     ['pause', () => this.onPause()], ['ended', () => this.onEnded()], ['error', () => this.onError()],
-    ['volumechange', () => this.publish({ ...this.state, muted: this.audio.muted })],
+    ['volumechange', () => this.publish({ ...this.state, muted: this.audio.muted, volume: this.audio.volume })],
   ];
 
   /** The element is created on first use, so an instance that React discards (Strict Mode) never creates one. */
@@ -58,7 +59,7 @@ export class AudioController {
       this.element = this.createElement();
       this.element.preload = 'auto';
       // Set once; muting uses `muted`, so unmuting restores this level.
-      this.element.volume = fixedVolume;
+      this.element.volume = maxVolume;
     }
     return this.element;
   }
@@ -148,14 +149,24 @@ export class AudioController {
 
   setMuted(muted: boolean): void {
     this.audio.muted = muted;
-    this.publish({ ...this.state, muted });
+    this.publish({ ...this.state, muted, volume: this.audio.volume });
+  }
+
+  setVolume(volume: number): void {
+    const clamped = Math.min(Math.max(Number.isFinite(volume) ? volume : 0, 0), maxVolume);
+    this.audio.volume = clamped;
+    if (clamped > 0 && this.audio.muted) {
+      this.setMuted(false);
+    } else {
+      this.publish({ ...this.state, volume: this.audio.volume, muted: this.audio.muted });
+    }
   }
 
   /** Stops the sound, releases the prepared file and deselects the track, which hides the panel. */
   clear(): void {
     this.request++;
     this.detachSource();
-    this.publish({ ...idle, muted: this.state.muted });
+    this.publish({ ...idle, muted: this.state.muted, volume: this.state.volume });
   }
 
   private detachSource(): void {
