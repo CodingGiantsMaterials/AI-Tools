@@ -1,7 +1,6 @@
 const repeat = 'm17 3 3 3-3 3M4 11v-1a4 4 0 0 1 4-4h12M7 21l-3-3 3-3M20 13v1a4 4 0 0 1-4 4H4';
 const speaker = 'M11 5 6 9H3v6h3l5 4V5Z';
 const paths = {
-  pin: 'm16 3 5 5-4 1-3 5v3l-7-7h3l5-3 1-4ZM3 21l6-6',
   left: 'm14 6-6 6 6 6', right: 'm10 6 6 6-6 6', down: 'm6 9 6 6 6-6', close: 'm6 6 12 12M18 6 6 18',
   copy: 'M9 7V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-3M5 7h9a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z',
   folder: 'M3 7V5a1 1 0 0 1 1-1h5l3 3h8a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7Z',

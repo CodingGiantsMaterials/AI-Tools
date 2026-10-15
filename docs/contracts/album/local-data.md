@@ -21,8 +21,7 @@ the next scan. Manual refresh hashes all existing candidates. Activation checks
 the current list and re-reads/hashes the selected file; unchanged other entries
 use size and modification time as a cheap signal. Results reconcile atomically.
 Active selection survives by `entryId`; if removed, the first remaining entry
-becomes active. Consumers retaining pinned IDs must show their absence, never
-silently substitute this fallback into a pinned comparison field.
+becomes active.
 
 Every entry exposes the original `file`, signature-derived `format`, `metadata`,
 `key: WorkKey`, `resourceKey`, nullable `contentId`, `identityStatus`, and nullable

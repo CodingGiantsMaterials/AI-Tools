@@ -8,8 +8,6 @@ import { pickDirectory, snapshotSource, supportsDirectoryPicker } from './files/
 import { CollectionController } from './collection/collection-controller';
 import { NotesController } from './notes/notes-controller';
 import { Gallery, ThumbnailStrip } from './Gallery';
-import { Comparison } from './Comparison';
-import { assignComparison, createComparison, pinComparison, reconcileComparison, type Slot } from './comparison-state';
 import { Inspection } from './Inspection';
 import { messages } from './i18n';
 import styles from './App.module.css';
@@ -21,20 +19,12 @@ export function App() {
   const [urls] = useState(() => new ObjectUrls());
   const [notes] = useState(() => new NotesController());
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
-  const [mode, setMode] = useState<'carousel' | 'comparison'>('carousel');
-  const [storedComparison, setComparison] = useState(() => createComparison(state.folderGeneration, state.entries, state.activeId));
-  const comparison = reconcileComparison(storedComparison, state.folderGeneration, state.entries, state.activeId);
-  if (comparison !== storedComparison) setComparison(comparison);
   const [language, setLanguage] = useState<Language>(() => { const saved = storedPreference(preferencePrefix, 'language'); return isLanguage(saved) ? saved : 'pl'; });
   const [theme, setTheme] = useState<Theme>(() => storedPreference(preferencePrefix, 'theme') === 'dark' ? 'dark' : 'light');
   const [pickerError, setPickerError] = useState<'denied' | 'folderError' | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const m = messages[language];
-  const activeId = mode === 'comparison' ? comparison.slots[comparison.active]?.entryId ?? null : state.activeId;
-  const active = state.entries.find((entry) => entry.entryId === activeId);
-  useEffect(() => {
-    if (mode === 'comparison' && active && state.activeId !== active.entryId) void controller.activate(active.entryId);
-  }, [mode, active, state.activeId, controller]);
+  const active = state.entries.find((entry) => entry.entryId === state.activeId);
   useDocumentPreferences(language, theme);
   useEffect(() => { savePreference(preferencePrefix, 'language', language); }, [language]);
   useEffect(() => { savePreference(preferencePrefix, 'theme', theme); }, [theme]);
@@ -55,30 +45,9 @@ export function App() {
   }
   const status = pickerError ? m[pickerError] : state.status === 'error' ? m.folderError : state.status === 'access-denied' ? m.denied
     : state.status === 'loading' ? m.loading : state.status === 'empty' ? m.empty : state.status === 'no-supported' ? m.noSupported : '';
-  const activate = (entryId: string) => {
-    if (mode === 'comparison') {
-      const entry = state.entries.find((item) => item.entryId === entryId);
-      if (entry) setComparison((current) => assignComparison(current, entry));
-    }
-    void controller.activate(entryId);
-  };
-  const changeMode = (next: typeof mode) => {
-    if (next === mode) return;
-    if (next === 'comparison' && active) setComparison(assignComparison(comparison, active));
-    if (next === 'carousel' && active) void controller.activate(active.entryId);
-    setMode(next);
-  };
-  const selectSlot = (slot: Slot) => {
-    setComparison({ ...comparison, active: slot });
-    const id = comparison.slots[slot]?.entryId;
-    if (id) void controller.activate(id);
-  };
+  const activate = (entryId: string) => { void controller.activate(entryId); };
   return <main className={styles.app}>
-    <Header className={styles.header} title="Album" language={language} theme={theme} labels={m} onLanguageChange={setLanguage} onThemeChange={setTheme}>
-      <div className={styles.modes} role="group" aria-label={m.view}>
-        <button aria-pressed={mode === 'carousel'} onClick={() => changeMode('carousel')}>{m.carousel}</button><button aria-pressed={mode === 'comparison'} onClick={() => changeMode('comparison')}>{m.comparison}</button>
-      </div>
-    </Header>
+    <Header className={styles.header} title="Album" language={language} theme={theme} labels={m} onLanguageChange={setLanguage} onThemeChange={setTheme} />
     {state.status !== 'no-folder' && <div className={styles.controls}>
       <button data-folder-control onClick={() => void choose()}><Icon name="folder" />{m.change}</button>
       {state.canRefresh && <button disabled={state.scanning} onClick={() => { setPickerError(null); void controller.refresh(); }}><Icon name="refresh" />{m.refresh}</button>}
@@ -87,20 +56,17 @@ export function App() {
     </div>}
     <input ref={input} type="file" multiple {...{ webkitdirectory: '' }} hidden aria-label={m.choose}
       onChange={(event) => { if (event.target.files) { setPickerError(null); void controller.setSource(snapshotSource(Array.from(event.target.files))); } event.target.value = ''; }} />
-    {active || mode === 'comparison' && state.folderGeneration > 0 ? <>
+    {active ? <>
       <div className={styles.workspace}>
         <div className={styles.galleryArea}>
           <div className={styles.collectionStatus} role="status">{status}
             {[...new Set(state.issues.map((issue) => issue.code))].filter((code) => code !== 'unsupported').map((code) => <p key={code}>{code === 'unavailable' ? m.unavailable : m.deniedFiles}</p>)}
           </div>
-          {mode === 'carousel' ? <Gallery key={state.folderGeneration} entries={state.entries} activeId={activeId} activate={activate} urls={urls} m={m} />
-            : <Comparison state={comparison} entries={state.entries} urls={urls} m={m} select={selectSlot} assign={activate} pin={(slot) => setComparison(pinComparison(comparison, slot))} />}
+          <Gallery key={state.folderGeneration} entries={state.entries} activeId={state.activeId} activate={activate} urls={urls} m={m} />
         </div>
-        {active ? <Inspection entry={active} notes={notes} m={m} language={language} /> : <aside className={styles.inspection} aria-label={m.information}>
-          <h2>{m.field} {comparison.active}</h2><p role="status">{comparison.slots[comparison.active] ? m.pinnedUnavailable : m.comparisonEmpty}</p>
-        </aside>}
+        <Inspection entry={active} notes={notes} m={m} language={language} />
       </div>
-      <ThumbnailStrip key={state.folderGeneration} entries={state.entries} activeId={active?.entryId ?? null} activate={activate} urls={urls} m={m} />
+      <ThumbnailStrip key={state.folderGeneration} entries={state.entries} activeId={state.activeId} activate={activate} urls={urls} m={m} />
     </> : <section className={styles.empty}>
       <div className={styles.emptyIcon}><Icon name="image" /></div>
       <h2 role="status">{status || m.intro}</h2>

@@ -1,11 +1,10 @@
 # Album
 
 A static browser application for browsing local photos in capture-date order.
-A looping carousel, thumbnail strip, enlarged preview and two-field comparison
-display original images, including animated PNG and WebP. Pin either comparison
-field to change the other. The active-image panel shows recorded metadata,
-C2PA declarations and automatically saved local notes. The interface supports
-Polish, English, German and Spanish, with light and dark themes.
+A looping carousel, thumbnail strip and enlarged preview display original
+images, including animated PNG and WebP. The active-image panel shows recorded
+metadata, C2PA declarations and automatically saved local notes. The interface
+supports Polish, English, German and Spanish, with light and dark themes.
 
 The application is published at
 `https://codinggiantsmaterials.github.io/AI-Tools/Album/`.
@@ -22,9 +21,7 @@ report an empty folder selection cannot distinguish it from a cancelled picker.
 
 Use the arrows, side images or thumbnails to navigate. Clicking the already
 central image opens the full-frame preview; Escape closes it. Notes and form
-controls keep their own keyboard behavior. Comparison shows which field is active;
-its metadata and notes follow that field. A deleted pinned image stays unavailable
-until it returns or is unpinned.
+controls keep their own keyboard behavior.
 
 Photos are ordered by capture date: EXIF first, then XMP, with undated photos
 last and deterministic filename ties. Dates with offsets are normalized to UTC;

@@ -63,45 +63,12 @@ until a draft is available and flushes on blur. The application also flushes on
 visibility loss and pagehide; these final transactions remain best effort.
 
 `apps/album/src/i18n.ts` provides the complete PL/EN/DE/ES dictionaries, typed
-with the shared `MessagesOf`. The [shared](../shared.md#shared-package) `Header`
-places the view switch between the logo and the language and theme controls;
-`App` owns their state. Persisted preferences use the shared preference
-functions with the prefix `ai-tools-album`, that is `ai-tools-album-language`
-and `ai-tools-album-theme` in localStorage; unavailable storage falls back to
-in-memory preferences. The default language is Polish, without browser language
-detection, and the default theme is light. Original metadata values and product
-names are never translated.
+with the shared `MessagesOf`. `App` owns the language and theme state of the
+[shared](../shared.md#shared-package) `Header`. Persisted preferences use the
+shared preference functions with the prefix `ai-tools-album`, that is
+`ai-tools-album-language` and `ai-tools-album-theme` in localStorage;
+unavailable storage falls back to in-memory preferences. The default language
+is Polish, without browser language detection, and the default theme is light.
+Original metadata values and product names are never translated.
 
 The provided logo is bundled unchanged from the shared package.
-
-## Comparison
-
-`comparison-state.ts` owns two entry-ID/name assignments, the active field,
-one optional pinned field and a folder generation. Assignments retain no original
-files or decoded buffers. `Comparison` renders both original revisions at full
-opacity with containment and at most two prepared navigation neighbors. The same
-`OriginalImage`, URL cache, thumbnail strip, keyboard guard and inspection panel
-serve carousel and comparison.
-
-Selecting a field changes inspection and its note immediately. Pinning a field
-selects the other field; pinning the other field transfers the single pin.
-Navigation and thumbnail assignment target the active field unless it is pinned,
-in which case they target the other field and activate it. Navigation skips the
-other field's entry and loops through the remaining choices. Selecting a thumbnail
-already assigned to the opposite field inspects that field without duplicating it.
-The navigation caption identifies the editable field, including when inspecting
-the pinned field. Notes always follow the inspected field's current content ID.
-
-Empty fields explicitly request another image. Two entries occupy distinct fields;
-navigation is disabled when there is no alternative for the editable field.
-Missing unpinned assignments reconcile to available distinct entries. A missing
-pinned assignment retains only its entry ID/name, displays unavailable, and has
-no image, metadata or editable note. It recovers only if that entry returns;
-unpinning releases the missing assignment. Comparison remains visible even when
-the collection becomes empty. Folder changes reset both assignments and pinning.
-
-Leaving comparison selects its available active entry in the carousel. Entering
-comparison assigns or inspects the carousel entry under the same pin rules.
-Metadata and original revisions always come from the current collection; equal-byte
-refreshes retain mounted images, while replacements change their resource keys.
-No additional image editing, overlay, zoom or animation synchronization is applied.

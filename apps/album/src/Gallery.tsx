@@ -11,7 +11,7 @@ export function carouselOffset(index: number, active: number, length: number): n
 }
 
 /** Native originals stay mounted while the same revision moves between positions. */
-export const OriginalImage = memo(function OriginalImage({ entry, urls, error }: { entry: CollectionEntry; urls: ObjectUrls; error: string }) {
+const OriginalImage = memo(function OriginalImage({ entry, urls, error }: { entry: CollectionEntry; urls: ObjectUrls; error: string }) {
   const [url, setUrl] = useState<string>();
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -42,7 +42,7 @@ function PreviewDialog({ entry, urls, m, onClose, opener }: { entry: CollectionE
   </dialog>;
 }
 
-export function useGalleryKeyboard(move: (direction: number) => void, blocked = false) {
+function useGalleryKeyboard(move: (direction: number) => void, blocked: boolean) {
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
       const target = event.target;

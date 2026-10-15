@@ -1,8 +1,7 @@
 import type { Language, MessagesOf } from '@ai-tools/shared/i18n';
 
 const en = {
-  choose: 'Choose folder', change: 'Change folder', refresh: 'Refresh', language: 'Language', theme: 'Color theme', light: 'Light', dark: 'Dark',
-  carousel: 'Carousel', comparison: 'Comparison', view: 'View', field: 'Field', editingField: 'Changing field', pin: 'Pin field', unpin: 'Unpin field', pinned: 'Pinned', emptyField: 'No photo', comparisonEmpty: 'Another photo is needed for this field.', pinnedUnavailable: 'The pinned photo is unavailable.',
+  choose: 'Choose folder', change: 'Change folder', refresh: 'Refresh', language: 'Language', theme: 'Color theme', light: 'Light', dark: 'Dark', carousel: 'Carousel',
   intro: 'A closer look at your photos.', introDetail: 'Choose a folder to explore original images, their provenance and your notes. Everything stays on this device.',
   loading: 'Reading your photos…', empty: 'This folder is empty.', noSupported: 'No supported images in this folder.', formats: 'JPEG, PNG, APNG and WebP',
   folderError: 'Cannot read the folder. Choose it again.', denied: 'Folder access was denied or lost. Choose it again.',
@@ -19,8 +18,7 @@ const en = {
 };
 export type Messages = MessagesOf<typeof en>;
 const pl: Messages = {
-  choose: 'Wybierz folder', change: 'Zmień folder', refresh: 'Odśwież', language: 'Język', theme: 'Motyw kolorystyczny', light: 'Jasny', dark: 'Ciemny',
-  carousel: 'Karuzela', comparison: 'Porównanie', view: 'Widok', field: 'Pole', editingField: 'Zmieniasz pole', pin: 'Przypnij pole', unpin: 'Odepnij pole', pinned: 'Przypięte', emptyField: 'Brak zdjęcia', comparisonEmpty: 'To pole wymaga kolejnego zdjęcia.', pinnedUnavailable: 'Przypięte zdjęcie jest niedostępne.',
+  choose: 'Wybierz folder', change: 'Zmień folder', refresh: 'Odśwież', language: 'Język', theme: 'Motyw kolorystyczny', light: 'Jasny', dark: 'Ciemny', carousel: 'Karuzela',
   intro: 'Przyjrzyj się swoim zdjęciom.', introDetail: 'Wybierz folder, aby przeglądać oryginalne zdjęcia, ich pochodzenie i swoje notatki. Wszystko pozostaje na tym urządzeniu.',
   loading: 'Wczytywanie zdjęć…', empty: 'Ten folder jest pusty.', noSupported: 'Brak obsługiwanych obrazów w tym folderze.', formats: 'JPEG, PNG, APNG i WebP',
   folderError: 'Nie można odczytać folderu. Wybierz go ponownie.', denied: 'Odmówiono dostępu do folderu lub go utracono. Wybierz go ponownie.',
@@ -36,8 +34,7 @@ const pl: Messages = {
   copy: 'Kopiuj metadane', copied: 'Skopiowano', copyError: 'Nie udało się skopiować. Zaznacz tekst, aby go skopiować.',
 };
 const de: Messages = {
-  choose: 'Ordner wählen', change: 'Ordner wechseln', refresh: 'Aktualisieren', language: 'Sprache', theme: 'Farbschema', light: 'Hell', dark: 'Dunkel',
-  carousel: 'Karussell', comparison: 'Vergleich', view: 'Ansicht', field: 'Feld', editingField: 'Geändertes Feld', pin: 'Feld anheften', unpin: 'Feld lösen', pinned: 'Angeheftet', emptyField: 'Kein Foto', comparisonEmpty: 'Für dieses Feld wird ein weiteres Foto benötigt.', pinnedUnavailable: 'Das angeheftete Foto ist nicht verfügbar.',
+  choose: 'Ordner wählen', change: 'Ordner wechseln', refresh: 'Aktualisieren', language: 'Sprache', theme: 'Farbschema', light: 'Hell', dark: 'Dunkel', carousel: 'Karussell',
   intro: 'Deine Fotos im Detail.', introDetail: 'Wähle einen Ordner für Originalbilder, Herkunftsangaben und deine Notizen. Alles bleibt auf diesem Gerät.',
   loading: 'Fotos werden geladen…', empty: 'Dieser Ordner ist leer.', noSupported: 'Keine unterstützten Bilder in diesem Ordner.', formats: 'JPEG, PNG, APNG und WebP',
   folderError: 'Ordner kann nicht gelesen werden. Bitte erneut wählen.', denied: 'Ordnerzugriff verweigert oder verloren. Bitte erneut wählen.', snapshot: 'Wähle den Ordner erneut, um Änderungen zu laden.', scanning: 'Änderungen werden geprüft…', unavailable: 'Einige Dateien sind nicht mehr verfügbar.', deniedFiles: 'Auf einige Dateien konnte nicht zugegriffen werden.',
@@ -49,7 +46,7 @@ const de: Messages = {
   notes: 'Notizen', notePlaceholder: 'Notiz hinzufügen…', noteIdentity: 'Lokale Identität wird ermittelt…', noteIdentityError: 'Notizen sind nicht verfügbar, da die Dateiidentität nicht gelesen werden konnte.', noteLoading: 'Notiz wird geladen…', noteDirty: 'Ungespeicherte Änderungen', noteSaving: 'Wird gespeichert…', noteSaved: 'Gespeichert', noteReadError: 'Notiz konnte nicht geladen werden.', noteWriteError: 'Speichern fehlgeschlagen. Der Entwurf bleibt im Arbeitsspeicher.', noteLocal: 'Notizen bleiben in diesem Browserprofil. Das Löschen der Websitedaten entfernt sie.', copy: 'Metadaten kopieren', copied: 'Kopiert', copyError: 'Kopieren fehlgeschlagen. Markiere den Text zum Kopieren.',
 };
 const es: Messages = {
-  choose: 'Elegir carpeta', change: 'Cambiar carpeta', refresh: 'Actualizar', language: 'Idioma', theme: 'Tema de color', light: 'Claro', dark: 'Oscuro', carousel: 'Carrusel', comparison: 'Comparación', view: 'Vista', field: 'Campo', editingField: 'Cambiando campo', pin: 'Fijar campo', unpin: 'Desfijar campo', pinned: 'Fijado', emptyField: 'Sin foto', comparisonEmpty: 'Se necesita otra foto para este campo.', pinnedUnavailable: 'La foto fijada no está disponible.',
+  choose: 'Elegir carpeta', change: 'Cambiar carpeta', refresh: 'Actualizar', language: 'Idioma', theme: 'Tema de color', light: 'Claro', dark: 'Oscuro', carousel: 'Carrusel',
   intro: 'Tus fotos, más de cerca.', introDetail: 'Elige una carpeta para explorar imágenes originales, su procedencia y tus notas. Todo permanece en este dispositivo.', loading: 'Leyendo fotos…', empty: 'Esta carpeta está vacía.', noSupported: 'No hay imágenes compatibles en esta carpeta.', formats: 'JPEG, PNG, APNG y WebP', folderError: 'No se puede leer la carpeta. Elígela de nuevo.', denied: 'Se denegó o perdió el acceso a la carpeta. Elígela de nuevo.', snapshot: 'Para cargar cambios en la carpeta, vuelve a elegirla.', scanning: 'Buscando cambios…', unavailable: 'Algunos archivos ya no están disponibles.', deniedFiles: 'No se pudo acceder a algunos archivos.',
   imageError: 'No se puede mostrar esta foto.', previous: 'Foto anterior', next: 'Foto siguiente', select: 'Seleccionar foto', enlarge: 'Ampliar foto', close: 'Cerrar vista previa', preview: 'Vista ampliada', thumbnails: 'Miniaturas de fotos', scrollBack: 'Desplazar miniaturas a la izquierda', scrollNext: 'Desplazar miniaturas a la derecha', information: 'Información de la foto', resolution: 'Resolución', format: 'Formato', size: 'Tamaño del archivo', missing: 'No registrado', metadataError: 'No se pudieron leer los metadatos.', metadataUnsupported: 'Los metadatos superan los límites o usan una variante no compatible.', generator: 'Generador de IA declarado', declarations: 'Declaraciones registradas de IA / origen', history: 'Pasos de edición registrados',
   reading: 'Leyendo…', notDetected: 'No detectado', unknown: 'Desconocido',
