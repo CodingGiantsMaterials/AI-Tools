@@ -13,12 +13,11 @@ The shared `Header` shows the logo, the update offer while one is pending, and
 the language and theme controls. Below it, the cover field sits to the left of
 the track list. The list shows exactly six rows and scrolls internally. It
 renders `max(6, last occupied row + 2)` rows, so an empty row always follows the
-last track. The arrow under the list scrolls instantly by exactly one row per
-click and has no disabled state; the mouse wheel scrolls back.
+last track.
 
 The player panel is fixed to the bottom edge and appears only while a track is
 current. The main content reserves the panel's height, so the panel never
-covers the list or its arrow, and small windows scroll the page. One layout
+covers the list, and small windows scroll the page. One layout
 unit, `--row` in whole pixels, scales the cover, the rows and the spacing with
 the window. The layout targets desktop browsers only.
 

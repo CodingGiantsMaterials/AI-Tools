@@ -16,15 +16,9 @@ interface TrackListProps {
 
 /** Six visible rows with internal scrolling; deleting and selecting are separate controls, never nested. */
 export function TrackList({ state, currentId, m, onAdd, onRemove, onSelect }: TrackListProps) {
-  const list = useRef<HTMLOListElement>(null);
   const ready = state.phase === 'ready';
-  // Exactly one row per click. The scroll is instant, so quick successive clicks add up.
-  const scrollOneRow = () => {
-    const row = list.current?.firstElementChild;
-    if (row instanceof HTMLElement) list.current!.scrollBy({ top: row.offsetHeight });
-  };
   return <section className={styles.tracks} aria-label={m.tracks}>
-    <ol ref={list} className={styles.list}>
+    <ol className={styles.list}>
       {Array.from({ length: rowCount(state.slots) }, (_, index) => {
         const id = state.slots[index] ?? null;
         const track = id ? state.tracks[id] : undefined;
@@ -43,9 +37,6 @@ export function TrackList({ state, currentId, m, onAdd, onRemove, onSelect }: Tr
         </li>;
       })}
     </ol>
-    <button className={styles.arrow} aria-label={m.scrollDown} title={m.scrollDown} onClick={scrollOneRow}>
-      <svg viewBox="0 0 36 32" aria-hidden="true"><path d="M4 4h28L18 28Z" fill="currentColor" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" /></svg>
-    </button>
   </section>;
 }
 
