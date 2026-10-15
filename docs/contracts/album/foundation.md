@@ -14,6 +14,11 @@ are required. Production retains the CSP in `apps/album/index.html`.
 `pickDirectory`, `directorySource`, `snapshotSource` and feature detection.
 Picker calls use `mode: 'read'` and must occur directly in a user gesture.
 Scanning only queries permission and never requests or escalates it.
+`FolderRepository` in `apps/album/src/files/folder-repository.ts` stores the
+active directory handle in IndexedDB `ai-tools-album-folder` (store `handles`).
+On reload, `App` queries permission on any remembered handle, restoring access
+immediately when granted or offering a user-gesture resume button when prompt is
+required.
 
 Both sources list direct children only. The directory adapter lists handles
 without recursive traversal, reacquiring a `File` on each `getFile()` call.

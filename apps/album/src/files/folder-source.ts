@@ -15,8 +15,10 @@ export interface FolderSource {
 export interface ReadOnlyFileHandle { kind: 'file'; name: string; getFile(): Promise<File> }
 export interface ReadOnlyDirectoryHandle {
   kind: 'directory';
+  name?: string;
   values(): AsyncIterable<ReadOnlyFileHandle | { kind: 'directory'; name: string }>;
   queryPermission(options: { mode: 'read' }): Promise<PermissionState>;
+  requestPermission?(options: { mode: 'read' }): Promise<PermissionState>;
 }
 
 type PickerWindow = Window & {
@@ -27,11 +29,15 @@ export function supportsDirectoryPicker(): boolean {
   return typeof (window as PickerWindow).showDirectoryPicker === 'function';
 }
 
-/** Call directly in a user gesture. Background scans never request permission. */
-export async function pickDirectory(): Promise<FolderSource> {
+export async function pickDirectoryHandle(): Promise<ReadOnlyDirectoryHandle> {
   const picker = (window as PickerWindow).showDirectoryPicker;
   if (!picker) throw new Error('DirectoryPickerUnavailable');
-  return directorySource(await picker.call(window, { mode: 'read' }));
+  return picker.call(window, { mode: 'read' });
+}
+
+/** Call directly in a user gesture. Background scans never request permission. */
+export async function pickDirectory(): Promise<FolderSource> {
+  return directorySource(await pickDirectoryHandle());
 }
 
 export function directorySource(handle: ReadOnlyDirectoryHandle): FolderSource {
