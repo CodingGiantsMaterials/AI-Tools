@@ -3,7 +3,6 @@ import type { Language, MessagesOf } from '@ai-tools/shared/i18n';
 // File names are inserted unchanged; only the surrounding text is translated.
 const en = {
   language: 'Language', theme: 'Color theme', light: 'Light', dark: 'Dark',
-  loading: 'Loading your library…', offlineReady: 'Player is ready to work offline.',
   updateAvailable: 'A new version of Player is available.', update: 'Update',
   tracks: 'Tracks', track: (n: number) => `Track ${n}`, addTrack: (n: number) => `Add an MP3 file as track ${n}`,
   removeTrack: (name: string) => `Remove ${name}`, adding: 'Saving…', removing: 'Removing…',
@@ -29,7 +28,6 @@ const en = {
 export type Messages = MessagesOf<typeof en>;
 const pl: Messages = {
   language: 'Język', theme: 'Motyw kolorystyczny', light: 'Jasny', dark: 'Ciemny',
-  loading: 'Wczytywanie biblioteki…', offlineReady: 'Player jest gotowy do pracy offline.',
   updateAvailable: 'Dostępna jest nowa wersja Playera.', update: 'Aktualizuj',
   tracks: 'Utwory', track: (n) => `Utwór ${n}`, addTrack: (n) => `Dodaj plik MP3 jako utwór ${n}`,
   removeTrack: (name) => `Usuń ${name}`, adding: 'Zapisywanie…', removing: 'Usuwanie…',
@@ -54,7 +52,6 @@ const pl: Messages = {
 };
 const de: Messages = {
   language: 'Sprache', theme: 'Farbschema', light: 'Hell', dark: 'Dunkel',
-  loading: 'Bibliothek wird geladen…', offlineReady: 'Player ist bereit für die Offline-Nutzung.',
   updateAvailable: 'Eine neue Version von Player ist verfügbar.', update: 'Aktualisieren',
   tracks: 'Titel', track: (n) => `Titel ${n}`, addTrack: (n) => `MP3-Datei als Titel ${n} hinzufügen`,
   removeTrack: (name) => `${name} entfernen`, adding: 'Wird gespeichert…', removing: 'Wird entfernt…',
@@ -79,7 +76,6 @@ const de: Messages = {
 };
 const es: Messages = {
   language: 'Idioma', theme: 'Tema de color', light: 'Claro', dark: 'Oscuro',
-  loading: 'Cargando la biblioteca…', offlineReady: 'Player está listo para funcionar sin conexión.',
   updateAvailable: 'Hay una nueva versión de Player disponible.', update: 'Actualizar',
   tracks: 'Pistas', track: (n) => `Pista ${n}`, addTrack: (n) => `Añadir un archivo MP3 como pista ${n}`,
   removeTrack: (name) => `Eliminar ${name}`, adding: 'Guardando…', removing: 'Eliminando…',

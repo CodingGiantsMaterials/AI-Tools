@@ -82,8 +82,12 @@ function failure(error: DOMException | null, mode: IDBTransactionMode): LibraryE
 export class LibraryRepository implements LibraryStore {
   private connection: Promise<IDBDatabase> | null = null;
   private readonly factory: IDBFactory;
+  private readonly databaseName: string;
 
-  constructor(factory: IDBFactory = indexedDB) { this.factory = factory; }
+  constructor(factory: IDBFactory = indexedDB, databaseName: string = libraryDatabase.name) {
+    this.factory = factory;
+    this.databaseName = databaseName;
+  }
 
   load(): Promise<StoredLibrary> {
     return this.transaction([store.tracks, store.slots, store.cover, store.session], 'readonly', (tx) => {
@@ -155,7 +159,7 @@ export class LibraryRepository implements LibraryStore {
   }
 
   private open(): Promise<IDBDatabase> {
-    this.connection ??= openDatabase(libraryDatabase.name, libraryDatabase.version, {
+    this.connection ??= openDatabase(this.databaseName, libraryDatabase.version, {
       factory: this.factory,
       // Migrations run in order from `oldVersion`; a later version adds an `oldVersion < n` step that keeps stored data.
       // An upgrade never deletes the database.

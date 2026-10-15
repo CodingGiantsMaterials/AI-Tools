@@ -24,6 +24,15 @@ export interface LibraryState {
   notice: Notice | null;
 }
 
+export const demoTracks: readonly string[] = [
+  'Cinematic Background.mp3',
+  'Club.mp3',
+  'Emotional.mp3',
+  'Energetic Rock.mp3',
+  'Heroes Never Die.mp3',
+  'Hip Hop.mp3',
+];
+
 const initial: LibraryState = { phase: 'loading', slots: [], tracks: {}, pending: {}, cover: null, coverPending: false,
   repeat: defaultSession.repeat, shuffle: defaultSession.shuffle, used: defaultSession.used, notice: null };
 const progressSaveInterval = 5000;
@@ -36,6 +45,7 @@ export class LibraryController {
   private readonly audio: AudioController;
   /** Supplies the random value of each shuffle choice; the rules themselves stay pure. */
   private readonly random: () => number;
+  private readonly demo: boolean;
   /** Files whose add transaction is in flight, by row, for the duplicate rule. */
   private readonly adding = new Map<number, Pick<Track, 'name' | 'size' | 'lastModified'>>();
   private loadStarted = false;
@@ -44,10 +54,11 @@ export class LibraryController {
   private lastProgressSave = 0;
   private persistenceRequested = false;
 
-  constructor(repository: LibraryStore, audio: AudioController, random: () => number = Math.random) {
+  constructor(repository: LibraryStore, audio: AudioController, random: () => number = Math.random, demo = false) {
     this.repository = repository;
     this.audio = audio;
     this.random = random;
+    this.demo = demo;
   }
 
   getSnapshot = (): LibraryState => this.state;
@@ -188,14 +199,58 @@ export class LibraryController {
   }
 
   private async load(): Promise<void> {
-    const stored = await this.repository.load().catch(() => null);
+    let stored = await this.repository.load().catch(() => null);
     if (!stored) { this.publish({ ...this.state, phase: 'unavailable', notice: { code: 'unavailable' } }); return; }
+    if (this.demo && stored.tracks.length === 0 && !stored.cover) {
+      await this.seedDemo();
+      stored = await this.repository.load().catch(() => null);
+      if (!stored) { this.publish({ ...this.state, phase: 'unavailable', notice: { code: 'unavailable' } }); return; }
+    }
     const { tracks, slots, cover, session } = stored;
     this.publish({ ...this.state, phase: 'ready', slots, cover, tracks: Object.fromEntries(tracks.map((track) => [track.id, track])),
       repeat: session.repeat, shuffle: session.shuffle, used: session.used });
     this.audio.setMuted(session.muted);
     // Reopening restores the saved track and position, paused.
     if (session.currentTrackId) this.prepare(session.currentTrackId, false, session.position);
+  }
+
+  private async seedDemo(): Promise<void> {
+    const baseUrl = import.meta.env.BASE_URL;
+    try {
+      const fetchBlob = async (url: string): Promise<Blob | null> => {
+        const res = await fetch(url);
+        return res.ok ? res.blob() : null;
+      };
+      const [coverBlob, ...trackBlobs] = await Promise.all([
+        fetchBlob(`${baseUrl}demo/cover.png`).catch(() => null),
+        ...demoTracks.map((name) => fetchBlob(`${baseUrl}demo/${encodeURIComponent(name)}`).catch(() => null)),
+      ]);
+
+      if (coverBlob) {
+        const format = await imageFormat(coverBlob);
+        if (format) {
+          await this.repository.replaceCover({ imageId: crypto.randomUUID(), format, blob: coverBlob });
+        }
+      }
+
+      let firstTrackId: string | null = null;
+      for (let index = 0; index < demoTracks.length; index++) {
+        const blob = trackBlobs[index];
+        const name = demoTracks[index];
+        if (!blob || !name || !await isMp3(blob)) continue;
+        const id = crypto.randomUUID();
+        if (firstTrackId === null) firstTrackId = id;
+        const track: Track = { id, name, size: blob.size, type: 'audio/mpeg', lastModified: Date.now() };
+        await this.repository.addTrack(track, blob, index);
+      }
+
+      if (firstTrackId) {
+        await this.repository.saveSession({ ...defaultSession, currentTrackId: firstTrackId, position: 0 });
+      }
+      void this.requestPersistence();
+    } catch {
+      // Best effort seeding; failures leave the library in whatever state was written.
+    }
   }
 
   private prepare(trackId: string, play: boolean, position = 0): void {

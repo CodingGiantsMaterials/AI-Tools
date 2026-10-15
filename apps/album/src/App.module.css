@@ -67,6 +67,11 @@
 .emptyIcon svg { width: 28px; height: 28px; }
 .empty h2 { font-size: 25px; font-weight: 500; margin: 10px 0; }
 .empty p { max-width: 470px; font-size: 14px; line-height: 1.8; color: var(--muted); }
+.resumeActions { display: flex; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+.resumeButton { padding: 8px 18px; border-radius: 8px; background: var(--accent); color: var(--surface); border: 1px solid var(--accent); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.resumeButton:hover:not(:disabled) { opacity: .9; }
+.resumeSecondary { padding: 8px 18px; border-radius: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+.resumeSecondary:hover:not(:disabled) { border-color: var(--muted); }
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; padding: 0; margin: -1px; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @media (min-width: 761px) { .inspection { contain: size; overflow-y: auto; scrollbar-gutter: stable; } }
 @media (min-width: 1500px) { .workspace { grid-template-columns: minmax(0, 1fr) 390px; } .inspection { font-size: 13px; padding-left: 30px; } .filename h2 { font-size: 23px; } }
