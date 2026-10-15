@@ -40,9 +40,7 @@ play from `blob:` URLs.
 `virtual:pwa-register/react`, so the registration code is bundled and the CSP
 needs no inline script. A failed registration, or a browser without service
 workers, leaves the application working online without offline use and without
-a message. After the first installation, `offlineReady` shows the translated
-ready-for-offline status for 6 s. Offline use requires that first installation
-to finish online.
+a message. Offline use requires that first installation to finish online.
 
 ## Updates
 
