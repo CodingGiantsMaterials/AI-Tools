@@ -1,5 +1,5 @@
 .app { max-width: 1920px; min-height: 100dvh; margin: auto; padding: 22px 36px 24px; display: flex; flex-direction: column; }
-.header { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 24px; min-height: 76px; margin-bottom: 14px; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 76px; margin-bottom: 14px; }
 .controls { display: flex; align-items: center; gap: 14px; min-height: 36px; margin: 0 0 12px 8px; flex-wrap: wrap; }
 .controls button { padding: 6px 10px; display: flex; align-items: center; gap: 8px; font-size: 12px; border-color: transparent; color: var(--muted); }
 .controls p { margin: 0; }
@@ -69,7 +69,7 @@
 .empty p { max-width: 470px; font-size: 14px; line-height: 1.8; color: var(--muted); }
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; padding: 0; margin: -1px; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @media (min-width: 761px) { .inspection { contain: size; overflow-y: auto; scrollbar-gutter: stable; } }
-@media (min-width: 1500px) { .workspace { grid-template-columns: minmax(0, 1fr) 390px; } .inspection { font-size: 13px; padding-left: 30px; } .filename h2 { font-size: 23px; } .app { padding: 24px 46px 26px; } .header { margin-bottom: 20px; } }
+@media (min-width: 1500px) { .workspace { grid-template-columns: minmax(0, 1fr) 390px; } .inspection { font-size: 13px; padding-left: 30px; } .filename h2 { font-size: 23px; } }
 @media (max-width: 1050px) { .app { padding: 16px 20px; } .workspace { grid-template-columns: minmax(0, 1fr) 310px; } .inspection { padding-left: 18px; } .carousel { min-height: 400px; } }
 @media (max-width: 760px) {
   .app { padding: 12px 16px 20px; } .header { gap: 12px; margin-bottom: 12px; }
